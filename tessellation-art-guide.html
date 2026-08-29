@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="テッセレーションを使った芸術作品を作るための、中学生向け手順書です。">
+  <meta name="theme-color" content="#f8f1ff">
+  <title>テッセレーション芸術を作ろう｜数学の遊び場</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #2f2941;
+      --muted: #665f76;
+      --purple: #7950b5;
+      --purple-dark: #563389;
+      --purple-soft: #eee2ff;
+      --yellow: #ffcb57;
+      --mint: #69d5bd;
+      --blue: #5aa4e8;
+      --coral: #ff8267;
+      --paper: rgba(255, 255, 255, 0.94);
+      --line: rgba(86, 51, 137, 0.14);
+      --shadow: 0 16px 36px rgba(58, 43, 87, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 8% 8%, rgba(255, 203, 87, 0.35) 0 8%, transparent 8.5%),
+        radial-gradient(circle at 92% 14%, rgba(105, 213, 189, 0.25) 0 9%, transparent 9.5%),
+        linear-gradient(145deg, #fffaf0 0%, #f8f1ff 48%, #eef8ff 100%);
+    }
+
+    a { color: inherit; }
+
+    .wrap {
+      width: min(100% - 32px, 960px);
+      margin-inline: auto;
+    }
+
+    .topbar {
+      display: flex;
+      min-height: 72px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .home-link {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .home-link:hover { background: #fff; }
+
+    .hero {
+      overflow: hidden;
+      padding: clamp(30px, 6vw, 62px);
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 0 14px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      color: var(--purple-dark);
+      background: var(--purple-soft);
+      font-size: 0.94rem;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4rem);
+      line-height: 1.18;
+      letter-spacing: 0.02em;
+      text-wrap: balance;
+    }
+
+    .hero-copy {
+      max-width: 720px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.3vw, 1.18rem);
+      line-height: 1.85;
+    }
+
+    .mission {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      margin-top: 26px;
+      padding: 18px;
+      border-radius: 20px;
+      background: #fff6d9;
+    }
+
+    .mission-icon { font-size: 2rem; }
+    .mission strong { display: block; margin-bottom: 4px; }
+    .mission p { margin: 0; line-height: 1.7; }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .action {
+      display: inline-flex;
+      min-height: 52px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 12px 20px;
+      border: 2px solid var(--purple-dark);
+      border-radius: 15px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .action.primary { color: #fff; background: var(--purple-dark); }
+    .action.secondary { color: var(--purple-dark); background: #fff; }
+    .action:hover { transform: translateY(-2px); }
+    .action:focus-visible, .home-link:focus-visible { outline: 4px solid #2458bd; outline-offset: 4px; }
+
+    main { padding-bottom: 54px; }
+
+    section { margin-top: 44px; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 20px;
+      font-size: clamp(1.55rem, 4vw, 2.2rem);
+    }
+
+    .section-title span {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border-radius: 15px;
+      background: var(--purple-soft);
+      font-size: 1.5rem;
+    }
+
+    .steps {
+      display: grid;
+      gap: 16px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: step;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 18px;
+      padding: clamp(20px, 4vw, 28px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--paper);
+      box-shadow: 0 9px 24px rgba(58, 43, 87, 0.08);
+      counter-increment: step;
+    }
+
+    .step::before {
+      display: grid;
+      width: 58px;
+      height: 58px;
+      place-items: center;
+      border-radius: 18px;
+      color: #fff;
+      background: var(--step-color, var(--purple));
+      content: counter(step);
+      font-size: 1.55rem;
+      font-weight: 900;
+    }
+
+    .step:nth-child(2) { --step-color: #ca654f; }
+    .step:nth-child(3) { --step-color: #2f8c78; }
+    .step:nth-child(4) { --step-color: #347fbf; }
+    .step:nth-child(5) { --step-color: #7a4daf; }
+
+    .step h3 { margin: 2px 0 8px; font-size: 1.25rem; }
+    .step p { margin: 0; color: var(--muted); line-height: 1.75; }
+    .tip { display: block; margin-top: 9px; color: var(--ink); font-weight: 700; }
+
+    .idea-grid, .check-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .idea, .check-card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--paper);
+    }
+
+    .idea .emoji { font-size: 2rem; }
+    .idea h3, .check-card h3 { margin: 12px 0 7px; }
+    .idea p, .check-card p { margin: 0; color: var(--muted); line-height: 1.7; }
+
+    .reflection {
+      padding: clamp(24px, 5vw, 38px);
+      border-radius: 28px;
+      color: #fff;
+      background: linear-gradient(135deg, #68419d, #3b73b4);
+      box-shadow: var(--shadow);
+    }
+
+    .reflection h2 { margin: 0 0 16px; font-size: clamp(1.55rem, 4vw, 2.1rem); }
+    .reflection ul { margin: 0; padding-left: 1.35em; line-height: 2; }
+
+    footer {
+      padding: 30px 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 720px) {
+      .wrap { width: min(100% - 24px, 560px); }
+      .idea-grid, .check-grid { grid-template-columns: 1fr; }
+      .step { grid-template-columns: 52px 1fr; gap: 12px; }
+      .step::before { width: 48px; height: 48px; border-radius: 15px; }
+    }
+
+    @media (max-width: 430px) {
+      .step { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .action { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .topbar, .actions { display: none; }
+      .wrap { width: 100%; }
+      .hero, .step, .idea, .check-card, .reflection { box-shadow: none; break-inside: avoid; }
+      .hero { padding: 24px; }
+      section { margin-top: 28px; }
+      .reflection { color: #111; background: #f2edf8; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="topbar wrap" aria-label="ページ案内">
+    <a class="home-link" href="index.html">← 数学の遊び場へ</a>
+  </nav>
+
+  <main class="wrap">
+    <header class="hero">
+      <p class="tag">数学 × アート</p>
+      <h1>テッセレーション芸術を作ろう</h1>
+      <p class="hero-copy">同じ形を、すき間も重なりもなく並べるテッセレーション。規則を見つけ、色と発想を加えて、世界に一つだけの模様を作ってみよう。</p>
+
+      <div class="mission">
+        <span class="mission-icon" aria-hidden="true">🎯</span>
+        <div>
+          <strong>今日のミッション</strong>
+          <p>「くり返しの規則」が見える、美しいテッセレーション作品を完成させよう。</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="action primary" href="tessellation.html">🧩 テセレーション・ラボを開く</a>
+        <a class="action secondary" href="#steps">作り方を見る ↓</a>
+      </div>
+    </header>
+
+    <section id="steps" aria-labelledby="steps-title">
+      <h2 class="section-title" id="steps-title"><span aria-hidden="true">✏️</span>作品づくりの5ステップ</h2>
+      <ol class="steps">
+        <li class="step">
+          <div>
+            <h3>形を観察する</h3>
+            <p>ゲームを開き、どんな図形が並んでいるかをよく見よう。辺の長さ、角の大きさ、向きに注目すると規則が見つかります。</p>
+            <span class="tip">考えてみよう：どの部分とどの部分がぴったり合う？</span>
+          </div>
+        </li>
+        <li class="step">
+          <div>
+            <h3>作品のテーマを決める</h3>
+            <p>海、生き物、宇宙、植物、季節など、模様から連想したテーマを一つ選ぼう。先に作品の雰囲気を決めてもかまいません。</p>
+            <span class="tip">ヒント：図形を魚や鳥、葉っぱに見立てるのもおもしろい。</span>
+          </div>
+        </li>
+        <li class="step">
+          <div>
+            <h3>くり返しの規則を作る</h3>
+            <p>形を平行にずらしたり、回したり、裏返したりして並べよう。すき間や重なりがないか、画面全体を確認します。</p>
+            <span class="tip">数学の言葉：平行移動・回転移動・対称移動のどれを使った？</span>
+          </div>
+        </li>
+        <li class="step">
+          <div>
+            <h3>色のルールを決める</h3>
+            <p>「赤・青・黄の順」「となり合う形は違う色」など、自分だけの色のルールを作ろう。色を増やしすぎないと規則が伝わりやすくなります。</p>
+            <span class="tip">おすすめ：主役の色を1色、支える色を2〜3色選ぶ。</span>
+          </div>
+        </li>
+        <li class="step">
+          <div>
+            <h3>仕上げて、作品名をつける</h3>
+            <p>全体のバランスを見て仕上げよう。完成したら作品を保存または画面撮影し、テーマが伝わる作品名をつけます。</p>
+            <span class="tip">最後に：使った移動の種類と、工夫したところを説明できるかな？</span>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="ideas-title">
+      <h2 class="section-title" id="ideas-title"><span aria-hidden="true">💡</span>アイデアのたね</h2>
+      <div class="idea-grid">
+        <article class="idea">
+          <span class="emoji" aria-hidden="true">🐟</span>
+          <h3>自然から探す</h3>
+          <p>魚の群れ、花びら、蜂の巣、うろこなど、自然のくり返しをヒントにする。</p>
+        </article>
+        <article class="idea">
+          <span class="emoji" aria-hidden="true">🌙</span>
+          <h3>物語を作る</h3>
+          <p>昼から夜へ、春から冬へなど、色の変化で時間や物語を表す。</p>
+        </article>
+        <article class="idea">
+          <span class="emoji" aria-hidden="true">🔷</span>
+          <h3>規則を楽しむ</h3>
+          <p>2色交互、3つごとの回転など、はっきりした数学的ルールを主役にする。</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="check-title">
+      <h2 class="section-title" id="check-title"><span aria-hidden="true">✅</span>完成チェック</h2>
+      <div class="check-grid">
+        <article class="check-card">
+          <h3>すき間・重なり</h3>
+          <p>図形どうしがぴったりつながっていますか？</p>
+        </article>
+        <article class="check-card">
+          <h3>くり返し</h3>
+          <p>形や色の規則を見つけることができますか？</p>
+        </article>
+        <article class="check-card">
+          <h3>自分らしさ</h3>
+          <p>テーマや色に、自分の工夫が表れていますか？</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="reflection" aria-labelledby="reflection-title">
+      <h2 id="reflection-title">作品ができたら考えてみよう</h2>
+      <ul>
+        <li>どんな規則で図形を並べましたか？</li>
+        <li>平行移動・回転移動・対称移動のどれを使いましたか？</li>
+        <li>一番工夫したところ、次に試したいことは何ですか？</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>数学の遊び場｜テッセレーション芸術の手順書</footer>
+</body>
+</html>
