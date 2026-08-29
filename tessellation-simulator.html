@@ -132,11 +132,15 @@
       }
       function hexagonData(){
         const v=[point(60,0),point(120,30),point(120,90),point(60,120),point(0,90),point(0,30)],ts=[1/3,2/3],o=state.offsets.hexagon;
-        const first=[];const handles=[];let index=0;
-        for(let e=0;e<3;e++){const n=normal(v[e],v[e+1]);const controls=ts.map(t=>shifted(interp(v[e],v[e+1],t),n,o[index++]));first.push(controls);controls.forEach((p,j)=>handles.push({p,base:interp(v[e],v[e+1],ts[j]),n,max:24,index:e*2+j}))}
+        const first=[],handles=[],paired=[];
+        for(let e=0;e<3;e++){
+          const n=normal(v[e],v[e+1]),index=e*2,safe=clamp(o[index],-16,16);o[index]=safe;o[index+1]=-safe;
+          const controls=[shifted(interp(v[e],v[e+1],ts[0]),n,safe),shifted(interp(v[e],v[e+1],ts[1]),n,-safe)];
+          first.push(controls);handles.push({p:controls[0],base:interp(v[e],v[e+1],ts[0]),n,max:16,index});paired.push(controls[1]);
+        }
         const opposite=first.map(edge=>edge.map(rotate180));
         const pts=[v[0],...first[0],v[1],...first[1],v[2],...first[2],v[3],...opposite[0],v[4],...opposite[1],v[5],...opposite[2]];
-        return{paths:[pathFrom(pts)],guide:'',handles,mirrors:opposite.flat(),bounds:{w:120,h:120}};
+        return{paths:[pathFrom(pts)],guide:'',handles,mirrors:[...paired,...opposite.flat()],bounds:{w:120,h:120}};
       }
       function data(){return state.shape==='triangle'?triangleData():state.shape==='square'?squareData():hexagonData()}
       function colorFor(i,r,c){const p=palettes[paletteSelect.value];return p[(i+r+c)%p.length]}
@@ -154,9 +158,9 @@
       }
       function svgPoint(event){const group=document.getElementById('editorGroup'),p=svg.createSVGPoint();p.x=event.clientX;p.y=event.clientY;return p.matrixTransform(group.getScreenCTM().inverse())}
       function startDrag(event){if(state.mode!=='edit')return;event.preventDefault();const index=Number(event.currentTarget.dataset.handle),meta=data().handles.find(h=>h.index===index);drag={index,meta,pointerId:event.pointerId};svg.setPointerCapture(event.pointerId);svg.addEventListener('pointermove',moveDrag);svg.addEventListener('pointerup',endDrag);svg.addEventListener('pointercancel',endDrag)}
-      function moveDrag(event){if(!drag||event.pointerId!==drag.pointerId)return;const p=svgPoint(event),m=drag.meta,dx=p.x-m.base.x,dy=p.y-m.base.y;state.offsets[state.shape][drag.index]=clamp(dx*m.n.x+dy*m.n.y,-m.max,m.max);renderEditor()}
+      function moveDrag(event){if(!drag||event.pointerId!==drag.pointerId)return;const p=svgPoint(event),m=drag.meta,dx=p.x-m.base.x,dy=p.y-m.base.y,value=clamp(dx*m.n.x+dy*m.n.y,-m.max,m.max);state.offsets[state.shape][drag.index]=value;if(state.shape==='hexagon')state.offsets.hexagon[drag.index+1]=-value;renderEditor()}
       function endDrag(){drag=null;svg.removeEventListener('pointermove',moveDrag);svg.removeEventListener('pointerup',endDrag);svg.removeEventListener('pointercancel',endDrag)}
-      function keyMove(event){if(!['ArrowUp','ArrowRight','ArrowDown','ArrowLeft'].includes(event.key))return;event.preventDefault();const i=Number(event.currentTarget.dataset.handle),direction=['ArrowUp','ArrowRight'].includes(event.key)?1:-1,meta=data().handles.find(h=>h.index===i);state.offsets[state.shape][i]=clamp(state.offsets[state.shape][i]+direction*2,-meta.max,meta.max);renderEditor();editLayer.querySelector(`[data-handle="${i}"]`)?.focus()}
+      function keyMove(event){if(!['ArrowUp','ArrowRight','ArrowDown','ArrowLeft'].includes(event.key))return;event.preventDefault();const i=Number(event.currentTarget.dataset.handle),direction=['ArrowUp','ArrowRight'].includes(event.key)?1:-1,meta=data().handles.find(h=>h.index===i),value=clamp(state.offsets[state.shape][i]+direction*2,-meta.max,meta.max);state.offsets[state.shape][i]=value;if(state.shape==='hexagon')state.offsets.hexagon[i+1]=-value;renderEditor();editLayer.querySelector(`[data-handle="${i}"]`)?.focus()}
 
       function renderSimulation(){
         const d=data(),density=Number(densityRange.value),p=palettes[paletteSelect.value],parts=[];let count=0;
@@ -168,14 +172,14 @@
           for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const delay=count++*.045;parts.push(`<g transform="translate(${ox} ${oy}) scale(${scale}) translate(${c*120} ${r*120})">${pathMarkup(d.paths[0],colorFor(0,r,c),'tile sim-tile',`style="animation-delay:${delay}s"`)}</g>`)}
         }else{
           const cols=density,rows=Math.max(4,Math.ceil(density*.75)),scale=Math.min(1.02,650/((cols+1)*120)),width=(cols*120+60)*scale,height=(rows*90+30)*scale,ox=(760-width)/2,oy=(520-height)/2;
-          for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const delay=count++*.045,x=c*120+(r%2?60:0),y=r*90;parts.push(`<g transform="translate(${ox} ${oy}) scale(${scale}) translate(${x} ${y})">${pathMarkup(d.paths[0],colorFor(0,r,c),'tile sim-tile',`style="animation-delay:${delay}s"`)}</g>`)}
+          for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const delay=count++*.045,x=c*120+(r%2?60:0),y=r*90,rotation=(r+c)%2?'rotate(180 60 60)':'';parts.push(`<g transform="translate(${ox} ${oy}) scale(${scale}) translate(${x} ${y})"><g transform="${rotation}">${pathMarkup(d.paths[0],colorFor(0,r,c),'tile sim-tile',`style="animation-delay:${delay}s"`)}</g></g>`)}
         }
         editLayer.innerHTML='';simLayer.innerHTML=parts.join('');stageMessage.textContent='完成！「形の編集に戻る」で、さらに変えて比べてみよう。';setTimeout(()=>stageMessage.classList.add('show'),Math.min(2500,count*45+500));
       }
       function setEditing(editing){state.mode=editing?'edit':'sim';modeBadge.textContent=editing?'形を編集中':'シミュレーション中';startButton.disabled=!editing;editButton.disabled=editing;shapeButtons.forEach(b=>b.disabled=!editing);gentleButton.disabled=!editing;resetButton.disabled=!editing;stageMessage.classList.remove('show');if(editing){renderEditor();status.innerHTML='<strong>編集中：</strong>さらに点を動かして、もう一度試せます。'}else{renderSimulation();status.innerHTML='<strong>完成：</strong>形と色の規則が、画面全体へ広がりました。'}}
-      function chooseShape(next){state.shape=next;shapeButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.shape===next)));renderEditor();status.innerHTML='<strong>準備中：</strong>白い点を動かして、好きな形を作ってください。'}
+      function chooseShape(next){state.shape=next;shapeButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.shape===next)));renderEditor();status.innerHTML=next==='hexagon'?'<strong>六角形・安全モード：</strong>3つの白い点を動かすと、対応する点が自動調整されます。':'<strong>準備中：</strong>白い点を動かして、好きな形を作ってください。'}
       shapeButtons.forEach(b=>b.addEventListener('click',()=>chooseShape(b.dataset.shape)));
-      gentleButton.addEventListener('click',()=>{const arr=state.offsets[state.shape];arr.forEach((_,i)=>arr[i]=Math.round((Math.random()*20-10)*(i%2?-.8:1)));renderEditor()});
+      gentleButton.addEventListener('click',()=>{const arr=state.offsets[state.shape];if(state.shape==='hexagon'){for(let i=0;i<6;i+=2){arr[i]=Math.round(Math.random()*18-9);arr[i+1]=-arr[i]}}else arr.forEach((_,i)=>arr[i]=Math.round((Math.random()*20-10)*(i%2?-.8:1)));renderEditor()});
       resetButton.addEventListener('click',()=>{state.offsets[state.shape].fill(0);renderEditor()});
       paletteSelect.addEventListener('change',()=>state.mode==='edit'?renderEditor():renderSimulation());
       densityRange.addEventListener('input',()=>{densityOutput.value=densityRange.value;if(state.mode==='sim')renderSimulation()});
