@@ -228,6 +228,9 @@
       filter: brightness(.96) drop-shadow(0 0 4px rgba(91, 76, 196, .42));
     }
 
+    .region.no-stroke { stroke: none; }
+    .region.no-stroke.mistake { stroke: var(--danger); stroke-width: 5; }
+
     .region.mistake {
       stroke: var(--danger);
       stroke-width: 7;
@@ -454,7 +457,7 @@
       lx: lx ?? x + width / 2, ly: ly ?? y + height / 2
     });
     const P = (id, label, points, lx, ly) => ({ id, label, type: "polygon", points, lx, ly });
-    const D = (id, label, d, lx, ly, fillRule) => ({ id, label, type: "path", d, lx, ly, fillRule });
+    const D = (id, label, d, lx, ly, fillRule, noStroke = false) => ({ id, label, type: "path", d, lx, ly, fillRule, noStroke });
 
     function brickTask() {
       const regions = [
@@ -477,8 +480,8 @@
 
     function kinkiTask() {
       const regions = [
-        D("water", "瀬戸内海・太平洋", "M25 255H470V350H410V330H380V360H300V335H210V360H115V280H25Z M25 490H650V410H875V525H25Z", 450, 505),
-        D("japan-sea", "日本海", "M25 25H875V100H690V145H525V115H385V100H25Z", 450, 63),
+        D("water", "瀬戸内海・太平洋", "M25 255H470V350H410V330H380V360H300V335H210V360H115V280H25Z M25 490H650V410H875V525H25Z", 450, 505, undefined, true),
+        D("japan-sea", "日本海", "M25 25H875V100H690V145H525V115H385V100H25Z", 450, 63, undefined, true),
 
         R("tottori", "鳥取", 25, 100, 230, 70),
         R("okayama", "岡山", 25, 170, 185, 85),
@@ -488,7 +491,6 @@
         R("gifu", "岐阜", 780, 180, 95, 85),
         D("aichi", "愛知", "M780 265H875V320H760V300H780Z", 826, 289),
         R("shiga", "滋賀", 650, 205, 110, 95),
-        R("lake", "琵琶湖", 685, 219, 40, 46),
         D("osaka", "大阪", "M470 245H525V215H560V310H520V350H410V330H430V280H470Z", 502, 292),
         D("nara", "奈良", "M520 310H650V410H500V350H520Z", 580, 360),
         D("mie", "三重", "M650 300H760V320H875V465H800V490H650V410Z", 750, 390),
@@ -507,7 +509,7 @@
         ["tottori","okayama"],["tottori","hyogo"],["okayama","hyogo"],
         ["hyogo","kyoto"],["hyogo","osaka"],["kyoto","fukui"],["kyoto","shiga"],["kyoto","osaka"],
         ["fukui","shiga"],["fukui","gifu"],["shiga","gifu"],["shiga","aichi"],["shiga","mie"],["shiga","nara"],
-        ["gifu","aichi"],["aichi","mie"],["lake","shiga"],
+        ["gifu","aichi"],["aichi","mie"],
         ["osaka","nara"],["osaka","wakayama"],["nara","wakayama"],["nara","mie"],["wakayama","mie"],
         ["kagawa","ehime"],["kagawa","tokushima"],["ehime","tokushima"],["ehime","kochi"],["tokushima","kochi"],
         ["awaji","hyogo"],["awaji","tokushima"]
@@ -558,6 +560,55 @@
         }
       }
       return { id: "maze", short: "問題5", title: "縦線だらけの四角い迷路", level: "かなり難しい", description: "元のワークシートのように、枠の途中が細い縦線で分かれています。小さな区画を見落とさないで。", viewBox: "0 0 800 500", regions, adj };
+    }
+
+    function offsetMazeTask() {
+      const regions = [];
+      const addRow = (prefix, x, y, width, height, cuts) => {
+        for (let i = 0; i < cuts.length - 1; i++) {
+          const left = x + width * cuts[i];
+          const right = x + width * cuts[i + 1];
+          regions.push(R(`${prefix}${i}`, "", left, y, right-left, height));
+        }
+      };
+      const addSide = (prefix, x, y, width, height, cuts) => {
+        for (let i = 0; i < cuts.length - 1; i++) {
+          const top = y + height * cuts[i];
+          const bottom = y + height * cuts[i + 1];
+          regions.push(R(`${prefix}${i}`, "", x, top, width, bottom-top));
+        }
+      };
+      const configs = [
+        { x:25, y:25, x2:775, y2:475, t:48, top:[0,1], bottom:[0,.5,1], left:[0,1], right:[0,.54,1] },
+        { x:73, y:73, x2:727, y2:427, t:48, top:[0,.18,.38,.59,.78,1], bottom:[0,.24,.49,.74,1], left:[0,.47,1], right:[0,.32,.66,1] },
+        { x:121, y:121, x2:679, y2:379, t:48, top:[0,.138,.373,.591,.841,1], bottom:[0,.207,.501,.769,1], left:[0,.49,1], right:[0,.25,.63,1] },
+        { x:169, y:169, x2:631, y2:331, t:48, top:[0,.078,.362,.595,.926,1], bottom:[0,.161,.516,.81,1], left:[0,.582,1], right:[0,.44,1] }
+      ];
+      configs.forEach((c,n) => {
+        addRow(`z${n}t`,c.x,c.y,c.x2-c.x,c.t,c.top);
+        addRow(`z${n}b`,c.x,c.y2-c.t,c.x2-c.x,c.t,c.bottom);
+        addSide(`z${n}l`,c.x,c.y+c.t,c.t,c.y2-c.y-2*c.t,c.left);
+        addSide(`z${n}r`,c.x2-c.t,c.y+c.t,c.t,c.y2-c.y-2*c.t,c.right);
+      });
+      addRow("zcenter",217,217,366,66,[0,.344,.639,1]);
+
+      const adj = [];
+      for (let i = 0; i < regions.length; i++) {
+        for (let j = i + 1; j < regions.length; j++) {
+          const a = regions[i], b = regions[j];
+          const close = (v1,v2) => Math.abs(v1-v2) < .01;
+          const verticalBorder = close(a.x+a.width,b.x) || close(b.x+b.width,a.x);
+          const horizontalBorder = close(a.y+a.height,b.y) || close(b.y+b.height,a.y);
+          const yOverlap = Math.min(a.y+a.height,b.y+b.height)-Math.max(a.y,b.y);
+          const xOverlap = Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x);
+          if ((verticalBorder && yOverlap > .01) || (horizontalBorder && xOverlap > .01)) adj.push([a.id,b.id]);
+        }
+      }
+      return {
+        id: "offset-maze", short: "ラスト問題", title: "ずらし境界の最終迷路", level: "最難関",
+        description: "点で会うだけに見えて、実は短い辺で接する場所があります。境界の小さなずれを見抜こう。",
+        viewBox: "0 0 800 500", regions, adj
+      };
     }
 
     function mosaicTask() {
@@ -618,7 +669,7 @@
         regions: [R("a","A",70,70,300,110),R("b","B",370,70,160,110),R("c","C",70,180,300,110),R("d","D",370,180,160,110)],
         adj: [["a","b"],["a","c"],["b","d"],["c","d"]]
       },
-      fourNeededTask(), brickTask(), mosaicTask(), kinkiTask(), ringTask()
+      fourNeededTask(), brickTask(), mosaicTask(), kinkiTask(), ringTask(), offsetMazeTask()
     ];
 
     let currentIndex = 0;
@@ -677,6 +728,7 @@
       if (region.type === "polygon") shape = makeSvg("polygon", { points: region.points });
       if (region.type === "path") shape = makeSvg("path", { d: region.d, "fill-rule": region.fillRule || "nonzero" });
       shape.classList.add("region");
+      if (region.noStroke) shape.classList.add("no-stroke");
       shape.dataset.id = region.id;
       shape.setAttribute("tabindex", "0");
       shape.setAttribute("role", "button");
