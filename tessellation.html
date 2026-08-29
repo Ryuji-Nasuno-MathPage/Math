@@ -6,702 +6,85 @@
   <meta name="theme-color" content="#fff8e8">
   <title>テセレーション・ラボ</title>
   <style>
-    :root {
-      --ink: #23324a;
-      --muted: #64748b;
-      --paper: #fffdf8;
-      --cream: #fff5d8;
-      --blue: #3178c6;
-      --blue-dark: #205b9b;
-      --line: #dce6ef;
-      --shadow: 0 8px 24px rgba(35, 50, 74, .12);
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 12% 4%, rgba(255, 215, 94, .28), transparent 28rem),
-        linear-gradient(180deg, #fffaf0 0%, #f2f9ff 100%);
-      font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
-    }
-
-    body { min-height: 100dvh; }
-
-    button { font: inherit; }
-
-    .app {
-      width: min(1180px, 100%);
-      margin: 0 auto;
-      padding: max(12px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom));
-    }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 12px;
-    }
-
-    .title-wrap { min-width: 0; }
-    h1 { margin: 0; font-size: clamp(1.45rem, 4vw, 2.2rem); letter-spacing: .02em; }
-    .subtitle { margin: 3px 0 0; color: var(--muted); font-weight: 700; font-size: .92rem; }
-
-    .help-button {
-      flex: 0 0 auto;
-      min-width: 48px;
-      min-height: 48px;
-      border: 2px solid #e0c15c;
-      border-radius: 999px;
-      background: #fff3b7;
-      color: #694f00;
-      font-weight: 900;
-      cursor: pointer;
-    }
-
-    .panel {
-      background: rgba(255,255,255,.9);
-      border: 2px solid rgba(255,255,255,.95);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-    }
-
-    .shape-bar {
-      display: grid;
-      grid-template-columns: auto repeat(5, minmax(88px, 1fr));
-      align-items: stretch;
-      gap: 10px;
-      padding: 10px;
-      margin-bottom: 12px;
-    }
-
-    .bar-label {
-      display: grid;
-      place-items: center;
-      padding: 0 8px;
-      font-weight: 900;
-      color: #4a5b72;
-      white-space: nowrap;
-    }
-
-    .shape-button, .action-button {
-      min-height: 58px;
-      border: 0;
-      border-radius: 15px;
-      color: #253047;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: inset 0 -3px 0 rgba(0,0,0,.10);
-      transition: transform .12s ease, filter .12s ease;
-      touch-action: manipulation;
-    }
-
-    .shape-button { display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 1rem; }
-    .shape-button:active, .action-button:active { transform: translateY(2px); box-shadow: none; }
-    .shape-button:hover, .action-button:hover { filter: brightness(.98); }
-    .shape-button:focus-visible, .action-button:focus-visible, .help-button:focus-visible {
-      outline: 4px solid rgba(49,120,198,.25);
-      outline-offset: 2px;
-    }
-
-    .triangle-button { background: #ffd55c; }
-    .square-button { background: #69d2e7; }
-    .hex-button { background: #ff8f8f; }
-    .pentagon-button { background: #9cdd8b; }
-    .octagon-button { background: #c6acf3; }
-    .shape-icon { width: 32px; height: 32px; filter: drop-shadow(0 1px 0 rgba(255,255,255,.65)); }
-
-    .workspace-wrap { position: relative; overflow: hidden; }
-    #workspace {
-      display: block;
-      width: 100%;
-      height: min(58dvh, 610px);
-      min-height: 360px;
-      border-radius: 20px;
-      background: var(--paper);
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .empty-message {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-content: center;
-      text-align: center;
-      pointer-events: none;
-      color: #708196;
-      font-weight: 800;
-      line-height: 1.7;
-      transition: opacity .18s ease;
-    }
-    .empty-message strong { color: #40526b; font-size: 1.18rem; }
-    .empty-message.hidden { opacity: 0; }
-
-    .toolbar {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 8px;
-      padding: 10px;
-      margin-top: 12px;
-    }
-
-    .action-button { background: #edf3f8; min-height: 58px; padding: 6px 8px; }
-    .action-button .button-icon { display: block; font-size: 1.35rem; line-height: 1.1; }
-    .action-button .button-label { display: block; margin-top: 2px; font-size: .86rem; }
-    .rotate { background: #e7dcff; }
-    .copy { background: #d9f4dd; }
-    .delete { background: #ffe1dc; }
-    .reset { background: #fff0c2; }
-    .action-button:disabled { opacity: .42; cursor: not-allowed; filter: grayscale(.2); }
-
-    .status-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      min-height: 34px;
-      padding: 5px 7px 0;
-      color: var(--muted);
-      font-size: .88rem;
-      font-weight: 700;
-    }
-    #status { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .count { white-space: nowrap; }
-    .angle-info {
-      flex: 1;
-      text-align: center;
-      color: #3c526d;
-      font-weight: 800;
-    }
-
-    .piece { cursor: grab; }
-    .piece:active { cursor: grabbing; }
-    .piece polygon { vector-effect: non-scaling-stroke; transition: filter .12s ease; }
-    .piece.selected polygon {
-      stroke: #1f5f9f;
-      stroke-width: 5;
-      filter: drop-shadow(0 5px 5px rgba(35,50,74,.22));
-    }
-
-    dialog {
-      width: min(520px, calc(100% - 28px));
-      border: 0;
-      border-radius: 22px;
-      padding: 0;
-      color: var(--ink);
-      box-shadow: 0 20px 70px rgba(20,35,60,.3);
-    }
-    dialog::backdrop { background: rgba(25, 42, 65, .45); backdrop-filter: blur(3px); }
-    .dialog-inner { padding: 22px; }
-    .dialog-inner h2 { margin: 0 0 12px; }
-    .dialog-inner ol { margin: 0; padding-left: 1.45rem; line-height: 1.8; }
-    .dialog-tip { background: #fff5cb; border-radius: 12px; padding: 10px 12px; margin: 14px 0; font-weight: 700; }
-    .close-button { width: 100%; background: #4e8dd2; color: white; }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: max(22px, env(safe-area-inset-bottom));
-      translate: -50% 18px;
-      opacity: 0;
-      pointer-events: none;
-      padding: 10px 18px;
-      border-radius: 999px;
-      background: rgba(34,49,73,.93);
-      color: white;
-      font-weight: 800;
-      transition: opacity .2s ease, translate .2s ease;
-      z-index: 20;
-    }
-    .toast.show { opacity: 1; translate: -50% 0; }
-
-    @media (max-width: 720px) {
-      .shape-bar { grid-template-columns: repeat(3, 1fr); }
-      .bar-label { grid-column: 1 / -1; justify-content: start; min-height: 30px; }
-      .shape-button { flex-direction: column; gap: 2px; min-height: 72px; font-size: .88rem; }
-      .shape-icon { width: 29px; height: 29px; }
-      .toolbar { grid-template-columns: repeat(3, 1fr); }
-      #workspace { height: 52dvh; min-height: 330px; }
-      .subtitle { font-size: .8rem; }
-    }
-
-    /* タブレット横向き：中央の作業エリアを最大限広く使う */
-    @media (orientation: landscape) and (min-width: 740px) and (min-height: 500px) and (max-height: 900px) {
-      .app {
-        height: 100dvh;
-        display: grid;
-        grid-template-columns: 160px minmax(0, 1fr) 174px;
-        grid-template-rows: auto minmax(0, 1fr) auto;
-        grid-template-areas:
-          "header header header"
-          "shapes workspace tools"
-          ". status .";
-        gap: 10px;
-        padding-top: max(8px, env(safe-area-inset-top));
-        padding-bottom: max(8px, env(safe-area-inset-bottom));
-      }
-
-      header {
-        grid-area: header;
-        margin: 0;
-        min-height: 48px;
-      }
-
-      h1 { font-size: clamp(1.45rem, 3.2vw, 2rem); }
-      .subtitle { display: inline; margin-left: 10px; }
-      .title-wrap { display: flex; align-items: baseline; flex-wrap: wrap; }
-      .help-button { min-width: 44px; min-height: 44px; }
-
-      .shape-bar {
-        grid-area: shapes;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto repeat(5, minmax(54px, 1fr));
-        margin: 0;
-        padding: 8px;
-        gap: 8px;
-      }
-
-      .bar-label {
-        padding: 3px 0 1px;
-        white-space: normal;
-        text-align: center;
-      }
-
-      .shape-button {
-        min-width: 0;
-        min-height: 0;
-        flex-direction: column;
-        gap: 2px;
-        padding: 6px;
-      }
-
-      .shape-icon { width: 31px; height: 31px; }
-
-      .workspace-wrap {
-        grid-area: workspace;
-        min-width: 0;
-        min-height: 0;
-      }
-
-      #workspace {
-        width: 100%;
-        height: 100%;
-        min-height: 0;
-      }
-
-      .toolbar {
-        grid-area: tools;
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(7, minmax(0, 1fr));
-        margin: 0;
-        padding: 8px;
-        gap: 7px;
-      }
-
-      .action-button {
-        min-height: 0;
-        padding: 4px 7px;
-      }
-
-      .action-button .button-icon { display: inline; margin-right: 5px; font-size: 1.25rem; }
-      .action-button .button-label { display: inline; font-size: .83rem; }
-
-      .status-row {
-        grid-area: status;
-        padding: 0 6px;
-        min-height: 24px;
-      }
-
-      .angle-info { font-size: .8rem; }
-    }
-
-    @media (max-width: 430px) {
-      .app { padding-left: 8px; padding-right: 8px; }
-      .shape-bar, .toolbar { gap: 6px; padding: 7px; }
-      .shape-button { min-width: 0; }
-      .action-button { min-height: 55px; }
-      .action-button .button-label { font-size: .8rem; }
-      .status-row { font-size: .78rem; }
-      .angle-info { order: 3; flex-basis: 100%; padding: 2px 0 4px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
-    }
+    :root{--ink:#23324a;--muted:#64748b;--paper:#fffdf8;--blue:#3178c6;--line:#dce6ef;--shadow:0 8px 24px rgba(35,50,74,.12)}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;color:var(--ink);background:radial-gradient(circle at 12% 4%,rgba(255,215,94,.28),transparent 28rem),linear-gradient(180deg,#fffaf0,#f2f9ff);font-family:"Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif}body{min-height:100dvh}button,input{font:inherit}
+    .app{width:min(1180px,100%);margin:0 auto;padding:max(12px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom))}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}.title-wrap{min-width:0}h1{margin:0;font-size:clamp(1.45rem,4vw,2.2rem);letter-spacing:.02em}.subtitle{margin:3px 0 0;color:var(--muted);font-weight:700;font-size:.92rem}
+    .help-button{flex:0 0 auto;min-width:48px;min-height:48px;border:2px solid #e0c15c;border-radius:999px;background:#fff3b7;color:#694f00;font-weight:900;cursor:pointer}.panel{background:rgba(255,255,255,.9);border:2px solid rgba(255,255,255,.95);border-radius:20px;box-shadow:var(--shadow)}
+    .shape-bar{display:grid;grid-template-columns:auto repeat(5,minmax(88px,1fr));align-items:stretch;gap:10px;padding:10px;margin-bottom:12px}.bar-label{display:grid;place-items:center;padding:0 8px;font-weight:900;color:#4a5b72;white-space:nowrap}
+    .shape-button,.action-button,.pattern-button{min-height:58px;border:0;border-radius:15px;color:#253047;font-weight:900;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.1);transition:transform .12s ease,filter .12s ease;touch-action:manipulation}.shape-button{display:flex;align-items:center;justify-content:center;gap:9px;font-size:1rem}.shape-button:active,.action-button:active,.pattern-button:active{transform:translateY(2px);box-shadow:none}.shape-button:hover,.action-button:hover,.pattern-button:hover{filter:brightness(.98)}button:focus-visible,input:focus-visible{outline:4px solid rgba(49,120,198,.28);outline-offset:2px}
+    .triangle-button{background:#ffd55c}.square-button{background:#69d2e7}.hex-button{background:#ff8f8f}.pentagon-button{background:#9cdd8b}.octagon-button{background:#c6acf3}.shape-icon{width:32px;height:32px;filter:drop-shadow(0 1px 0 rgba(255,255,255,.65))}
+    .size-panel{display:grid;grid-template-columns:auto minmax(160px,1fr) auto minmax(230px,auto);align-items:center;gap:12px;padding:10px 12px;margin-bottom:12px}.size-label{font-weight:900;color:#4a5b72}.size-output{min-width:66px;color:#294e76;font-weight:900;font-variant-numeric:tabular-nums}.size-panel input{width:100%;accent-color:var(--blue);touch-action:manipulation}.pattern-button{padding:8px 16px;background:linear-gradient(135deg,#d8c4ff,#bfe7ff);color:#3e3563}
+    .workspace-wrap{position:relative;overflow:hidden}#workspace{display:block;width:100%;height:min(58dvh,610px);min-height:360px;border-radius:20px;background:var(--paper);touch-action:none;user-select:none;-webkit-user-select:none}.empty-message{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none;color:#708196;font-weight:800;line-height:1.7;transition:opacity .18s ease}.empty-message strong{color:#40526b;font-size:1.18rem}.empty-message.hidden{opacity:0}
+    .toolbar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px;margin-top:12px}.action-button{background:#edf3f8;min-height:58px;padding:6px 8px}.action-button .button-icon{display:block;font-size:1.35rem;line-height:1.1}.action-button .button-label{display:block;margin-top:2px;font-size:.86rem}.rotate{background:#e7dcff}.copy{background:#d9f4dd}.delete{background:#ffe1dc}.reset{background:#fff0c2}.action-button:disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.2)}
+    .status-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;padding:5px 7px 0;color:var(--muted);font-size:.88rem;font-weight:700}#status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.count{white-space:nowrap}.piece{cursor:grab}.piece:active{cursor:grabbing}.piece polygon{vector-effect:non-scaling-stroke;transition:filter .12s ease}.piece.selected polygon{stroke:#1f5f9f;stroke-width:5;filter:drop-shadow(0 5px 5px rgba(35,50,74,.22))}
+    dialog{width:min(540px,calc(100% - 28px));border:0;border-radius:22px;padding:0;color:var(--ink);box-shadow:0 20px 70px rgba(20,35,60,.3)}dialog::backdrop{background:rgba(25,42,65,.45);backdrop-filter:blur(3px)}.dialog-inner{padding:22px}.dialog-inner h2{margin:0 0 12px}.dialog-inner ol{margin:0;padding-left:1.45rem;line-height:1.8}.dialog-tip{background:#fff5cb;border-radius:12px;padding:10px 12px;margin:14px 0;font-weight:700}.close-button{width:100%;background:#4e8dd2;color:#fff}
+    .toast{position:fixed;left:50%;bottom:max(22px,env(safe-area-inset-bottom));translate:-50% 18px;opacity:0;pointer-events:none;padding:10px 18px;border-radius:999px;background:rgba(34,49,73,.93);color:#fff;font-weight:800;transition:opacity .2s ease,translate .2s ease;z-index:20}.toast.show{opacity:1;translate:-50% 0}
+    @media(max-width:760px){.shape-bar{grid-template-columns:repeat(3,1fr)}.bar-label{grid-column:1/-1;justify-content:start;min-height:30px}.shape-button{flex-direction:column;gap:2px;min-height:72px;font-size:.88rem}.shape-icon{width:29px;height:29px}.size-panel{grid-template-columns:auto 1fr auto}.pattern-button{grid-column:1/-1}.toolbar{grid-template-columns:repeat(3,1fr)}#workspace{height:52dvh;min-height:360px}.subtitle{font-size:.8rem}}
+    @media(orientation:landscape) and (min-width:740px) and (min-height:500px) and (max-height:900px){.app{height:100dvh;display:grid;grid-template-columns:160px minmax(0,1fr) 174px;grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"header header header" "shapes size tools" "shapes workspace tools" ". status .";gap:10px;padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}header{grid-area:header;margin:0;min-height:48px}h1{font-size:clamp(1.45rem,3.2vw,2rem)}.subtitle{display:inline;margin-left:10px}.title-wrap{display:flex;align-items:baseline;flex-wrap:wrap}.help-button{min-width:44px;min-height:44px}.shape-bar{grid-area:shapes;grid-template-columns:1fr;grid-template-rows:auto repeat(5,minmax(54px,1fr));margin:0;padding:8px;gap:8px}.bar-label{padding:3px 0 1px;white-space:normal;text-align:center}.shape-button{min-width:0;min-height:0;flex-direction:column;gap:2px;padding:6px}.shape-icon{width:31px;height:31px}.size-panel{grid-area:size;margin:0;grid-template-columns:auto 1fr auto minmax(210px,auto);padding:7px 10px}.workspace-wrap{grid-area:workspace;min-width:0;min-height:0}#workspace{width:100%;height:100%;min-height:0}.toolbar{grid-area:tools;grid-template-columns:1fr;grid-template-rows:repeat(7,minmax(0,1fr));margin:0;padding:8px;gap:7px}.action-button{min-height:0;padding:4px 7px}.action-button .button-icon{display:inline;margin-right:5px;font-size:1.25rem}.action-button .button-label{display:inline;font-size:.83rem}.status-row{grid-area:status;padding:0 6px;min-height:24px}}
+    @media(max-width:430px){.app{padding-left:8px;padding-right:8px}.shape-bar,.toolbar{gap:6px;padding:7px}.action-button{min-height:55px}.action-button .button-label{font-size:.8rem}.status-row{font-size:.78rem}.size-panel{gap:8px}.pattern-button{font-size:.88rem}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
   </style>
 </head>
 <body>
   <main class="app">
-    <header>
-      <div class="title-wrap">
-        <h1>テセレーション・ラボ</h1>
-        <p class="subtitle">図形をすき間なく並べて、ふしぎな模様をつくろう！</p>
-      </div>
-      <button class="help-button" id="helpButton" aria-label="遊び方を開く">？</button>
-    </header>
-
+    <header><div class="title-wrap"><h1>テセレーション・ラボ</h1><p class="subtitle">辺の長さをそろえて、ふしぎな模様をつくろう！</p></div><button class="help-button" id="helpButton" aria-label="遊び方を開く">？</button></header>
     <section class="shape-bar panel" aria-label="図形を追加">
       <div class="bar-label">図形を追加</div>
-      <button class="shape-button triangle-button" data-add="triangle">
-        <svg class="shape-icon" viewBox="0 0 100 90" aria-hidden="true"><polygon points="50,5 96,85 4,85" fill="#fff8d9" stroke="#8a6900" stroke-width="7"/></svg>
-        正三角形
-      </button>
-      <button class="shape-button square-button" data-add="square">
-        <svg class="shape-icon" viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="8" width="84" height="84" rx="4" fill="#e9fcff" stroke="#176675" stroke-width="7"/></svg>
-        正方形
-      </button>
-      <button class="shape-button hex-button" data-add="hexagon">
-        <svg class="shape-icon" viewBox="0 0 100 90" aria-hidden="true"><polygon points="25,5 75,5 97,45 75,85 25,85 3,45" fill="#fff0f0" stroke="#883939" stroke-width="7"/></svg>
-        正六角形
-      </button>
-      <button class="shape-button pentagon-button" data-add="pentagon">
-        <svg class="shape-icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 96,38 78,92 22,92 4,38" fill="#f1ffed" stroke="#39722e" stroke-width="7"/></svg>
-        正五角形
-      </button>
-      <button class="shape-button octagon-button" data-add="octagon">
-        <svg class="shape-icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" fill="#f8f1ff" stroke="#60428d" stroke-width="7"/></svg>
-        正八角形
-      </button>
+      <button class="shape-button triangle-button" data-add="triangle"><svg class="shape-icon" viewBox="0 0 100 90" aria-hidden="true"><polygon points="50,5 96,85 4,85" fill="#fff8d9" stroke="#8a6900" stroke-width="7"/></svg>正三角形</button>
+      <button class="shape-button square-button" data-add="square"><svg class="shape-icon" viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="8" width="84" height="84" rx="4" fill="#e9fcff" stroke="#176675" stroke-width="7"/></svg>正方形</button>
+      <button class="shape-button hex-button" data-add="hexagon"><svg class="shape-icon" viewBox="0 0 100 90" aria-hidden="true"><polygon points="25,5 75,5 97,45 75,85 25,85 3,45" fill="#fff0f0" stroke="#883939" stroke-width="7"/></svg>正六角形</button>
+      <button class="shape-button pentagon-button" data-add="pentagon"><svg class="shape-icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 96,38 78,92 22,92 4,38" fill="#f1ffed" stroke="#39722e" stroke-width="7"/></svg>正五角形</button>
+      <button class="shape-button octagon-button" data-add="octagon"><svg class="shape-icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" fill="#f8f1ff" stroke="#60428d" stroke-width="7"/></svg>正八角形</button>
     </section>
-
+    <section class="size-panel panel" aria-label="辺の長さと組合せ">
+      <label class="size-label" for="sizeRange">辺の長さ</label><input id="sizeRange" type="range" min="28" max="110" value="64"><output class="size-output" id="sizeOutput">64</output>
+      <button class="pattern-button" id="octagonSquareButton" type="button">正八角形＋正方形で全面を埋める</button>
+    </section>
     <section class="workspace-wrap panel" aria-label="図形を並べる作業エリア">
-      <svg id="workspace" role="application" aria-label="テセレーション作業エリア" tabindex="0">
-        <defs>
-          <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e8eef4" stroke-width="1"/>
-          </pattern>
-          <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-            <rect width="100" height="100" fill="url(#smallGrid)"/>
-            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#d6e1eb" stroke-width="1.5"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)"/>
-        <g id="piecesLayer"></g>
-      </svg>
-      <div class="empty-message" id="emptyMessage">
-        <strong>上の図形をタップしてスタート！</strong>
-        図形は指で自由に動かせます
-      </div>
+      <svg id="workspace" role="application" aria-label="テセレーション作業エリア" tabindex="0"><defs><pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0L0 0 0 20" fill="none" stroke="#e8eef4" stroke-width="1"/></pattern><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#smallGrid)"/><path d="M100 0L0 0 0 100" fill="none" stroke="#d6e1eb" stroke-width="1.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid)"/><g id="piecesLayer"></g></svg>
+      <div class="empty-message" id="emptyMessage"><strong>上の図形をタップしてスタート！</strong>図形は指で自由に動かせます</div>
     </section>
-
     <section class="toolbar panel" aria-label="選択した図形の操作">
-      <button class="action-button rotate needs-selection" data-action="rotate-left" disabled><span class="button-icon">↶</span><span class="button-label">左に回転</span></button>
-      <button class="action-button rotate needs-selection" data-action="rotate-right" disabled><span class="button-icon">↷</span><span class="button-label">右に回転</span></button>
-      <button class="action-button rotate" id="rotationStepButton" data-action="rotation-step"><span class="button-icon">∠</span><span class="button-label">回転角 45°</span></button>
-      <button class="action-button copy needs-selection" data-action="copy" disabled><span class="button-icon">⧉</span><span class="button-label">コピー</span></button>
-      <button class="action-button delete needs-selection" data-action="delete" disabled><span class="button-icon">⌫</span><span class="button-label">削除</span></button>
-      <button class="action-button" id="snapButton" data-action="snap" aria-pressed="false"><span class="button-icon">⌗</span><span class="button-label">ぴったり移動</span></button>
-      <button class="action-button reset" data-action="reset"><span class="button-icon">↺</span><span class="button-label">全部リセット</span></button>
+      <button class="action-button rotate needs-selection" data-action="rotate-left" disabled><span class="button-icon">↶</span><span class="button-label">左に回転</span></button><button class="action-button rotate needs-selection" data-action="rotate-right" disabled><span class="button-icon">↷</span><span class="button-label">右に回転</span></button><button class="action-button rotate" id="rotationStepButton" data-action="rotation-step"><span class="button-icon">∠</span><span class="button-label">回転角 45°</span></button><button class="action-button copy needs-selection" data-action="copy" disabled><span class="button-icon">⧉</span><span class="button-label">コピー</span></button><button class="action-button delete needs-selection" data-action="delete" disabled><span class="button-icon">⌫</span><span class="button-label">削除</span></button><button class="action-button" id="snapButton" data-action="snap" aria-pressed="false"><span class="button-icon">⌗</span><span class="button-label">ぴったり移動</span></button><button class="action-button reset" data-action="reset"><span class="button-icon">↺</span><span class="button-label">全部リセット</span></button>
     </section>
-
-    <div class="status-row" aria-live="polite">
-      <span id="status">図形を追加してください</span>
-      <span class="angle-info" id="angleInfo">内角に注目してみよう</span>
-      <span class="count" id="count">図形 0個</span>
-    </div>
+    <div class="status-row" aria-live="polite"><span id="status">図形を追加してください</span><span class="count" id="count">図形 0個</span></div>
   </main>
-
-  <dialog id="helpDialog">
-    <div class="dialog-inner">
-      <h2>遊び方</h2>
-      <ol>
-        <li>上のボタンから図形を追加します。</li>
-        <li>図形を指やマウスでドラッグして動かします。</li>
-        <li>選んだ図形は、回転・コピー・削除できます。回転角は15°・30°・45°・60°・90°から選べます。</li>
-        <li>図形どうしを、すき間も重なりもなく並べてみましょう。</li>
-        <li>正五角形・正八角形では、頂点のまわりにできるすき間にも注目しましょう。</li>
-      </ol>
-      <p class="dialog-tip">数学のヒント：1つの頂点のまわりは360°です。図形の内角で360°をぴったり作れるでしょうか？</p>
-      <button class="action-button close-button" id="closeHelp">わかった！</button>
-    </div>
-  </dialog>
+  <dialog id="helpDialog"><div class="dialog-inner"><h2>遊び方</h2><ol><li>図形を追加し、指やマウスで動かします。</li><li>「辺の長さ」で、これから追加する図形や選択中の図形の大きさを変えられます。</li><li>辺の長さが同じ図形どうしを組み合わせてみましょう。</li><li>正八角形と正方形の見本は「全面を埋める」ボタンで作れます。</li><li>選んだ図形は、回転・コピー・削除できます。</li></ol><p class="dialog-tip">数学のヒント：正八角形の内角135°を2つと、正方形の内角90°を合わせると360°になります。</p><button class="action-button close-button" id="closeHelp">わかった！</button></div></dialog>
   <div class="toast" id="toast" role="status"></div>
-
   <script>
-    (() => {
-      'use strict';
-
-      const svg = document.getElementById('workspace');
-      const layer = document.getElementById('piecesLayer');
-      const emptyMessage = document.getElementById('emptyMessage');
-      const status = document.getElementById('status');
-      const angleInfo = document.getElementById('angleInfo');
-      const count = document.getElementById('count');
-      const snapButton = document.getElementById('snapButton');
-      const rotationStepButton = document.getElementById('rotationStepButton');
-      const toast = document.getElementById('toast');
-      const helpDialog = document.getElementById('helpDialog');
-
-      const NS = 'http://www.w3.org/2000/svg';
-      const colors = ['#FFD45C', '#68D4E8', '#FF8D8D', '#8ED77A', '#BBA0F4', '#FFAE65'];
-      const shapeNames = { triangle: '正三角形', square: '正方形', hexagon: '正六角形', pentagon: '正五角形', octagon: '正八角形' };
-      const shapes = {
-        triangle: { points: '-45,26 45,26 0,-52', step: 60 },
-        square: { points: '-43,-43 43,-43 43,43 -43,43', step: 90 },
-        hexagon: { points: '-46,-40 46,-40 69,0 46,40 -46,40 -69,0', step: 60 },
-        pentagon: { points: '0,-52 49.5,-16.1 30.6,42.1 -30.6,42.1 -49.5,-16.1', step: 72 },
-        octagon: { points: '0,-55 38.9,-38.9 55,0 38.9,38.9 0,55 -38.9,38.9 -55,0 -38.9,-38.9', step: 45 }
-      };
-      const angleFacts = {
-        triangle: '内角60° × 6個 ＝ 360° → ぴったり！',
-        square: '内角90° × 4個 ＝ 360° → ぴったり！',
-        hexagon: '内角120° × 3個 ＝ 360° → ぴったり！',
-        pentagon: '内角108°：3個で324°、4個では432° → ぴったりにならない',
-        octagon: '内角135°：2個で270° → 90°のすき間は正方形で埋められる！'
-      };
-
-      let pieces = [];
-      let selectedId = null;
-      let nextId = 1;
-      let snapOn = false;
-      let rotationStep = 45;
-      let drag = null;
-      let toastTimer = null;
-
-      function pointInWorkspace(clientX, clientY) {
-        const pt = svg.createSVGPoint();
-        pt.x = clientX;
-        pt.y = clientY;
-        const matrix = svg.getScreenCTM();
-        return matrix ? pt.matrixTransform(matrix.inverse()) : { x: 0, y: 0 };
-      }
-
-      function centerPoint() {
-        const box = svg.getBoundingClientRect();
-        return pointInWorkspace(box.left + box.width / 2, box.top + box.height / 2);
-      }
-
-      function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
-      function snapped(value) { return snapOn ? Math.round(value / 10) * 10 : value; }
-      function getPiece(id) { return pieces.find(piece => piece.id === id); }
-
-      function makePieceElement(piece) {
-        const group = document.createElementNS(NS, 'g');
-        group.classList.add('piece');
-        group.dataset.id = piece.id;
-        group.setAttribute('role', 'button');
-        group.setAttribute('aria-label', shapeNames[piece.type]);
-
-        const polygon = document.createElementNS(NS, 'polygon');
-        polygon.setAttribute('points', shapes[piece.type].points);
-        polygon.setAttribute('fill', piece.color);
-        polygon.setAttribute('stroke', '#34455c');
-        polygon.setAttribute('stroke-width', '3');
-        polygon.setAttribute('stroke-linejoin', 'round');
-        group.appendChild(polygon);
-        return group;
-      }
-
-      function render() {
-        const existing = new Map([...layer.children].map(el => [Number(el.dataset.id), el]));
-
-        pieces.forEach(piece => {
-          let el = existing.get(piece.id);
-          if (!el) {
-            el = makePieceElement(piece);
-            layer.appendChild(el);
-          }
-          existing.delete(piece.id);
-          el.setAttribute('transform', `translate(${piece.x} ${piece.y}) rotate(${piece.rotation})`);
-          el.classList.toggle('selected', piece.id === selectedId);
-          el.setAttribute('aria-pressed', String(piece.id === selectedId));
-          if (piece.id === selectedId) layer.appendChild(el);
-        });
-
-        existing.forEach(el => el.remove());
-        emptyMessage.classList.toggle('hidden', pieces.length > 0);
-        count.textContent = `図形 ${pieces.length}個`;
-        document.querySelectorAll('.needs-selection').forEach(button => {
-          button.disabled = selectedId === null;
-        });
-      }
-
-      function select(id) {
-        selectedId = id;
-        const piece = getPiece(id);
-        status.textContent = piece ? `${shapeNames[piece.type]}を選択中` : (pieces.length ? '図形をタップして選択できます' : '図形を追加してください');
-        angleInfo.textContent = piece ? angleFacts[piece.type] : '内角に注目してみよう';
-        render();
-      }
-
-      function addPiece(type, source) {
-        const center = source || centerPoint();
-        const offset = pieces.length ? ((pieces.length % 5) - 2) * 7 : 0;
-        const piece = {
-          id: nextId++, type,
-          x: center.x + offset,
-          y: center.y + offset,
-          rotation: 0,
-          color: colors[(nextId - 2) % colors.length]
-        };
-        pieces.push(piece);
-        select(piece.id);
-        showToast(`${shapeNames[type]}を追加しました`);
-      }
-
-      function rotate(direction) {
-        const piece = getPiece(selectedId);
-        if (!piece) return;
-        piece.rotation = (piece.rotation + rotationStep * direction + 360) % 360;
-        status.textContent = `${shapeNames[piece.type]}：${piece.rotation}°`;
-        render();
-      }
-
-      function cycleRotationStep() {
-        const steps = [15, 30, 45, 60, 90];
-        rotationStep = steps[(steps.indexOf(rotationStep) + 1) % steps.length];
-        rotationStepButton.querySelector('.button-label').textContent = `回転角 ${rotationStep}°`;
-        showToast(`回転角を${rotationStep}°にしました`);
-      }
-
-      function copySelected() {
-        const original = getPiece(selectedId);
-        if (!original) return;
-        const copy = { ...original, id: nextId++, x: original.x + 24, y: original.y + 24, color: colors[(nextId - 2) % colors.length] };
-        pieces.push(copy);
-        select(copy.id);
-        showToast('図形をコピーしました');
-      }
-
-      function deleteSelected() {
-        if (selectedId === null) return;
-        pieces = pieces.filter(piece => piece.id !== selectedId);
-        selectedId = null;
-        status.textContent = pieces.length ? '図形を削除しました' : '図形を追加してください';
-        angleInfo.textContent = '内角に注目してみよう';
-        render();
-      }
-
-      function resetAll() {
-        if (pieces.length === 0) return;
-        const ok = window.confirm('すべての図形を消して、最初からやり直しますか？');
-        if (!ok) return;
-        pieces = [];
-        selectedId = null;
-        status.textContent = '図形を追加してください';
-        angleInfo.textContent = '内角に注目してみよう';
-        render();
-        showToast('リセットしました');
-      }
-
-      function toggleSnap() {
-        snapOn = !snapOn;
-        snapButton.setAttribute('aria-pressed', String(snapOn));
-        snapButton.style.background = snapOn ? '#cce8ff' : '#edf3f8';
-        snapButton.querySelector('.button-label').textContent = snapOn ? 'ぴったり ON' : 'ぴったり移動';
-        showToast(snapOn ? 'ぴったり移動をオンにしました' : 'ぴったり移動をオフにしました');
-      }
-
-      function showToast(message) {
-        clearTimeout(toastTimer);
-        toast.textContent = message;
-        toast.classList.add('show');
-        toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
-      }
-
-      document.querySelectorAll('[data-add]').forEach(button => {
-        button.addEventListener('click', () => addPiece(button.dataset.add));
-      });
-
-      document.querySelector('.toolbar').addEventListener('click', event => {
-        const button = event.target.closest('[data-action]');
-        if (!button || button.disabled) return;
-        const actions = {
-          'rotate-left': () => rotate(-1),
-          'rotate-right': () => rotate(1),
-          'rotation-step': cycleRotationStep,
-          copy: copySelected,
-          delete: deleteSelected,
-          snap: toggleSnap,
-          reset: resetAll
-        };
-        actions[button.dataset.action]?.();
-      });
-
-      layer.addEventListener('pointerdown', event => {
-        const group = event.target.closest('.piece');
-        if (!group) return;
-        event.preventDefault();
-        const id = Number(group.dataset.id);
-        select(id);
-        const piece = getPiece(id);
-        const point = pointInWorkspace(event.clientX, event.clientY);
-        drag = { id, dx: point.x - piece.x, dy: point.y - piece.y, pointerId: event.pointerId };
-        group.setPointerCapture(event.pointerId);
-      });
-
-      layer.addEventListener('pointermove', event => {
-        if (!drag || drag.pointerId !== event.pointerId) return;
-        event.preventDefault();
-        const piece = getPiece(drag.id);
-        if (!piece) return;
-        const point = pointInWorkspace(event.clientX, event.clientY);
-        const bounds = svg.viewBox.baseVal.width ? svg.viewBox.baseVal : { width: svg.clientWidth, height: svg.clientHeight };
-        piece.x = snapped(clamp(point.x - drag.dx, 45, bounds.width - 45));
-        piece.y = snapped(clamp(point.y - drag.dy, 45, bounds.height - 45));
-        status.textContent = `${shapeNames[piece.type]}を移動中`;
-        render();
-      });
-
-      function endDrag(event) {
-        if (!drag || drag.pointerId !== event.pointerId) return;
-        drag = null;
-        const piece = getPiece(selectedId);
-        if (piece) status.textContent = `${shapeNames[piece.type]}を選択中`;
-      }
-
-      layer.addEventListener('pointerup', endDrag);
-      layer.addEventListener('pointercancel', endDrag);
-
-      svg.addEventListener('pointerdown', event => {
-        if (!event.target.closest('.piece')) select(null);
-      });
-
-      svg.addEventListener('keydown', event => {
-        const piece = getPiece(selectedId);
-        if (!piece) return;
-        const amount = snapOn ? 10 : (event.shiftKey ? 10 : 2);
-        const moves = { ArrowLeft: [-amount, 0], ArrowRight: [amount, 0], ArrowUp: [0, -amount], ArrowDown: [0, amount] };
-        if (moves[event.key]) {
-          event.preventDefault();
-          piece.x += moves[event.key][0];
-          piece.y += moves[event.key][1];
-          render();
-        } else if (event.key === 'Delete' || event.key === 'Backspace') {
-          event.preventDefault();
-          deleteSelected();
-        }
-      });
-
-      document.addEventListener('keydown', event => {
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd' && selectedId !== null) {
-          event.preventDefault();
-          copySelected();
-        }
-      });
-
-      document.getElementById('helpButton').addEventListener('click', () => helpDialog.showModal());
-      document.getElementById('closeHelp').addEventListener('click', () => helpDialog.close());
-      helpDialog.addEventListener('click', event => {
-        if (event.target === helpDialog) helpDialog.close();
-      });
-
-      function updateViewBox() {
-        const rect = svg.getBoundingClientRect();
-        svg.setAttribute('viewBox', `0 0 ${Math.max(1, rect.width)} ${Math.max(1, rect.height)}`);
-      }
-      new ResizeObserver(updateViewBox).observe(svg);
-      updateViewBox();
-      render();
+    (()=>{'use strict';
+      const svg=document.getElementById('workspace'),layer=document.getElementById('piecesLayer'),emptyMessage=document.getElementById('emptyMessage'),status=document.getElementById('status'),count=document.getElementById('count'),snapButton=document.getElementById('snapButton'),rotationStepButton=document.getElementById('rotationStepButton'),sizeRange=document.getElementById('sizeRange'),sizeOutput=document.getElementById('sizeOutput'),toast=document.getElementById('toast'),helpDialog=document.getElementById('helpDialog'),NS='http://www.w3.org/2000/svg';
+      const colors=['#FFD45C','#68D4E8','#FF8D8D','#8ED77A','#BBA0F4','#FFAE65'];
+      const meta={triangle:{name:'正三角形',n:3,offset:-90,step:60},square:{name:'正方形',n:4,offset:-135,step:90},hexagon:{name:'正六角形',n:6,offset:-120,step:60},pentagon:{name:'正五角形',n:5,offset:-90,step:72},octagon:{name:'正八角形',n:8,offset:-112.5,step:45}};
+      let pieces=[],selectedId=null,nextId=1,snapOn=false,rotationStep=45,defaultSide=64,drag=null,toastTimer=null;
+      const clamp=(v,min,max)=>Math.max(min,Math.min(max,v)),snapped=v=>snapOn?Math.round(v/10)*10:v,getPiece=id=>pieces.find(p=>p.id===id);
+      function pointInWorkspace(clientX,clientY){const pt=svg.createSVGPoint();pt.x=clientX;pt.y=clientY;const matrix=svg.getScreenCTM();return matrix?pt.matrixTransform(matrix.inverse()):{x:0,y:0}}
+      function centerPoint(){const box=svg.getBoundingClientRect();return pointInWorkspace(box.left+box.width/2,box.top+box.height/2)}
+      function circumradius(type,side){return side/(2*Math.sin(Math.PI/meta[type].n))}
+      function polygonPoints(type,side){const m=meta[type],r=circumradius(type,side),points=[];for(let i=0;i<m.n;i++){const a=(m.offset+i*360/m.n)*Math.PI/180;points.push(`${(Math.cos(a)*r).toFixed(3)},${(Math.sin(a)*r).toFixed(3)}`)}return points.join(' ')}
+      function makePieceElement(piece){const group=document.createElementNS(NS,'g');group.classList.add('piece');group.dataset.id=piece.id;group.setAttribute('role','button');group.setAttribute('aria-label',meta[piece.type].name);const polygon=document.createElementNS(NS,'polygon');polygon.setAttribute('stroke','#34455c');polygon.setAttribute('stroke-width','3');polygon.setAttribute('stroke-linejoin','round');group.appendChild(polygon);return group}
+      function render(){const existing=new Map([...layer.children].map(el=>[Number(el.dataset.id),el]));pieces.forEach(piece=>{let el=existing.get(piece.id);if(!el){el=makePieceElement(piece);layer.appendChild(el)}existing.delete(piece.id);const polygon=el.querySelector('polygon');polygon.setAttribute('points',polygonPoints(piece.type,piece.size));polygon.setAttribute('fill',piece.color);el.setAttribute('transform',`translate(${piece.x} ${piece.y}) rotate(${piece.rotation})`);el.classList.toggle('selected',piece.id===selectedId);el.setAttribute('aria-pressed',String(piece.id===selectedId));if(piece.id===selectedId)layer.appendChild(el)});existing.forEach(el=>el.remove());emptyMessage.classList.toggle('hidden',pieces.length>0);count.textContent=`図形 ${pieces.length}個`;document.querySelectorAll('.needs-selection').forEach(button=>button.disabled=selectedId===null)}
+      function select(id){selectedId=id;const piece=getPiece(id);if(piece){defaultSide=piece.size;sizeRange.value=Math.round(piece.size);sizeOutput.value=`${Math.round(piece.size)}`;status.textContent=`${meta[piece.type].name}を選択中`}else status.textContent=pieces.length?'図形をタップして選択できます':'図形を追加してください';render()}
+      function addPiece(type,source,options={}){const center=source||centerPoint(),offset=options.exact?0:(pieces.length?((pieces.length%5)-2)*7:0),piece={id:nextId++,type,x:center.x+offset,y:center.y+offset,rotation:options.rotation||0,size:options.size||defaultSide,color:options.color||colors[(nextId-2)%colors.length]};pieces.push(piece);if(!options.quiet)select(piece.id);return piece}
+      function rotate(direction){const piece=getPiece(selectedId);if(!piece)return;piece.rotation=(piece.rotation+rotationStep*direction+360)%360;status.textContent=`${meta[piece.type].name}：${piece.rotation}°`;render()}
+      function cycleRotationStep(){const steps=[15,30,45,60,90];rotationStep=steps[(steps.indexOf(rotationStep)+1)%steps.length];rotationStepButton.querySelector('.button-label').textContent=`回転角 ${rotationStep}°`;showToast(`回転角を${rotationStep}°にしました`)}
+      function copySelected(){const original=getPiece(selectedId);if(!original)return;const copy={...original,id:nextId++,x:original.x+24,y:original.y+24,color:colors[(nextId-2)%colors.length]};pieces.push(copy);select(copy.id);showToast('図形をコピーしました')}
+      function deleteSelected(){if(selectedId===null)return;pieces=pieces.filter(p=>p.id!==selectedId);selectedId=null;status.textContent=pieces.length?'図形を削除しました':'図形を追加してください';render()}
+      function resetAll(){if(!pieces.length)return;if(!window.confirm('すべての図形を消して、最初からやり直しますか？'))return;pieces=[];selectedId=null;status.textContent='図形を追加してください';render();showToast('リセットしました')}
+      function toggleSnap(){snapOn=!snapOn;snapButton.setAttribute('aria-pressed',String(snapOn));snapButton.style.background=snapOn?'#cce8ff':'#edf3f8';snapButton.querySelector('.button-label').textContent=snapOn?'ぴったり ON':'ぴったり移動';showToast(snapOn?'ぴったり移動をオンにしました':'ぴったり移動をオフにしました')}
+      function showToast(message){clearTimeout(toastTimer);toast.textContent=message;toast.classList.add('show');toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
+      function fillOctagonSquare(){if(pieces.length&&!window.confirm('現在の図形を消して、正八角形と正方形の模様を作りますか？'))return;pieces=[];selectedId=null;const box=svg.viewBox.baseVal,width=box.width||svg.clientWidth,height=box.height||svg.clientHeight,s=defaultSide,pitch=s*(1+Math.SQRT2),cols=Math.ceil(width/pitch)+2,rows=Math.ceil(height/pitch)+2;for(let r=-1;r<rows;r++)for(let c=-1;c<cols;c++){addPiece('octagon',{x:c*pitch,y:r*pitch},{size:s,color:colors[(r+c+12)%colors.length],quiet:true,exact:true});addPiece('square',{x:(c+.5)*pitch,y:(r+.5)*pitch},{size:s,rotation:45,color:'#68D4E8',quiet:true,exact:true})}status.textContent='正八角形と正方形を、同じ辺の長さで敷き詰めました';render();showToast('4・8・8の模様を作りました')}
+      document.querySelectorAll('[data-add]').forEach(button=>button.addEventListener('click',()=>{addPiece(button.dataset.add);showToast(`${meta[button.dataset.add].name}を追加しました`)}));
+      document.querySelector('.toolbar').addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button||button.disabled)return;const actions={'rotate-left':()=>rotate(-1),'rotate-right':()=>rotate(1),'rotation-step':cycleRotationStep,copy:copySelected,delete:deleteSelected,snap:toggleSnap,reset:resetAll};actions[button.dataset.action]?.()});
+      sizeRange.addEventListener('input',()=>{const value=Number(sizeRange.value);defaultSide=value;sizeOutput.value=`${value}`;const piece=getPiece(selectedId);if(piece){piece.size=value;status.textContent=`${meta[piece.type].name}の辺：${value}`;render()}});document.getElementById('octagonSquareButton').addEventListener('click',fillOctagonSquare);
+      layer.addEventListener('pointerdown',event=>{const group=event.target.closest('.piece');if(!group)return;event.preventDefault();const id=Number(group.dataset.id);select(id);const piece=getPiece(id),point=pointInWorkspace(event.clientX,event.clientY);drag={id,dx:point.x-piece.x,dy:point.y-piece.y,pointerId:event.pointerId};group.setPointerCapture(event.pointerId)});
+      layer.addEventListener('pointermove',event=>{if(!drag||drag.pointerId!==event.pointerId)return;event.preventDefault();const piece=getPiece(drag.id);if(!piece)return;const point=pointInWorkspace(event.clientX,event.clientY),bounds=svg.viewBox.baseVal.width?svg.viewBox.baseVal:{width:svg.clientWidth,height:svg.clientHeight},margin=Math.max(22,circumradius(piece.type,piece.size));piece.x=snapped(clamp(point.x-drag.dx,margin,bounds.width-margin));piece.y=snapped(clamp(point.y-drag.dy,margin,bounds.height-margin));status.textContent=`${meta[piece.type].name}を移動中`;render()});
+      function endDrag(event){if(!drag||drag.pointerId!==event.pointerId)return;drag=null;const piece=getPiece(selectedId);if(piece)status.textContent=`${meta[piece.type].name}を選択中`}layer.addEventListener('pointerup',endDrag);layer.addEventListener('pointercancel',endDrag);svg.addEventListener('pointerdown',event=>{if(!event.target.closest('.piece'))select(null)});
+      svg.addEventListener('keydown',event=>{const piece=getPiece(selectedId);if(!piece)return;const amount=snapOn?10:(event.shiftKey?10:2),moves={ArrowLeft:[-amount,0],ArrowRight:[amount,0],ArrowUp:[0,-amount],ArrowDown:[0,amount]};if(moves[event.key]){event.preventDefault();piece.x+=moves[event.key][0];piece.y+=moves[event.key][1];render()}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelected()}});document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='d'&&selectedId!==null){event.preventDefault();copySelected()}});
+      document.getElementById('helpButton').addEventListener('click',()=>helpDialog.showModal());document.getElementById('closeHelp').addEventListener('click',()=>helpDialog.close());helpDialog.addEventListener('click',event=>{if(event.target===helpDialog)helpDialog.close()});
+      function updateViewBox(){const rect=svg.getBoundingClientRect();svg.setAttribute('viewBox',`0 0 ${Math.max(1,rect.width)} ${Math.max(1,rect.height)}`)}new ResizeObserver(updateViewBox).observe(svg);updateViewBox();render();
     })();
   </script>
 </body>
 </html>
-
-
