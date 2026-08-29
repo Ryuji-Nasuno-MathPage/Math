@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="三角形・四角形・六角形を自分で変形して、テッセレーション模様を試せるシミュレーターです。">
+  <meta name="theme-color" content="#f5f0ff">
+  <title>テッセレーション・アートシミュレーター｜数学の遊び場</title>
+  <style>
+    :root{
+      color-scheme:light;--ink:#2e2940;--muted:#686277;--paper:rgba(255,255,255,.96);
+      --purple:#6c48a2;--purple-dark:#4f307d;--purple-soft:#eee3ff;--blue:#347fbd;
+      --line:rgba(79,48,125,.18);--shadow:0 18px 44px rgba(52,40,81,.14);--stage:#f8f5ff;
+    }
+    *{box-sizing:border-box}html{scroll-behavior:smooth}
+    body{min-height:100vh;margin:0;color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;background:radial-gradient(circle at 8% 8%,rgba(255,208,98,.3) 0 8%,transparent 8.5%),radial-gradient(circle at 92% 12%,rgba(86,198,172,.22) 0 9%,transparent 9.5%),linear-gradient(145deg,#fffaf0,#f7f1ff 52%,#eef8ff)}
+    .wrap{width:min(100% - 28px,1120px);margin-inline:auto}nav{display:flex;min-height:68px;align-items:center}
+    nav a{display:inline-flex;min-height:44px;align-items:center;padding:9px 14px;border-radius:13px;color:inherit;font-weight:800;text-decoration:none;background:rgba(255,255,255,.78)}
+    header{text-align:center;margin-bottom:22px}.tag{display:inline-block;margin:0 0 9px;padding:6px 13px;border-radius:999px;color:var(--purple-dark);background:var(--purple-soft);font-weight:800}
+    h1{margin:0;font-size:clamp(1.9rem,5vw,3.5rem);line-height:1.2;text-wrap:balance}.lead{max-width:780px;margin:12px auto 0;color:var(--muted);line-height:1.75}
+    .workspace{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.72fr);gap:18px;align-items:start}
+    .panel{border:1px solid var(--line);border-radius:26px;background:var(--paper);box-shadow:var(--shadow)}
+    .stage-panel{overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 20px;border-bottom:1px solid var(--line)}
+    .panel-head strong{font-size:1.08rem}.mode-badge{padding:5px 10px;border-radius:999px;color:var(--purple-dark);background:var(--purple-soft);font-size:.86rem;font-weight:800}
+    .stage{position:relative;min-height:520px;background:var(--stage)}svg{display:block;width:100%;height:520px;touch-action:none;user-select:none}
+    .tile{stroke:rgba(45,41,64,.56);stroke-width:1.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}.tile.no-line{stroke:transparent}.partner{opacity:.28}.cell-guide{fill:none;stroke:rgba(79,48,125,.2);stroke-width:1.4;stroke-dasharray:6 7;vector-effect:non-scaling-stroke}
+    .handle-link{stroke:rgba(79,48,125,.2);stroke-width:1.2;stroke-dasharray:4 5;vector-effect:non-scaling-stroke}.handle{fill:#fff;stroke:var(--purple-dark);stroke-width:3;vector-effect:non-scaling-stroke;cursor:grab}.handle:active{cursor:grabbing}.mirror-handle{fill:var(--purple-soft);stroke:var(--purple);stroke-width:2;opacity:.78;vector-effect:non-scaling-stroke;pointer-events:none}
+    .empty-note{fill:var(--muted);font-family:inherit;font-size:20px;text-anchor:middle}.sim-tile{opacity:0;transform-box:fill-box;transform-origin:center;animation:tile-in .48s cubic-bezier(.2,.75,.3,1) forwards}@keyframes tile-in{from{opacity:0;transform:scale(.78)}to{opacity:1;transform:scale(1)}}
+    .stage-message{position:absolute;inset:auto 18px 18px;display:none;padding:11px 15px;border-radius:15px;color:#fff;text-align:center;font-weight:800;background:rgba(52,40,81,.88);pointer-events:none}.stage-message.show{display:block}
+    .controls-panel{padding:20px}.step-title{display:flex;align-items:center;gap:9px;margin:0 0 12px;font-size:1.05rem}.step-no{display:grid;width:30px;height:30px;place-items:center;border-radius:10px;color:#fff;background:var(--purple-dark);font-size:.9rem}.section-block+.section-block{margin-top:23px;padding-top:21px;border-top:1px solid var(--line)}
+    .shape-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.shape-tabs button{padding-inline:7px}
+    button,select,input{font:inherit}button{min-height:46px;padding:9px 14px;border:2px solid var(--purple-dark);border-radius:13px;color:var(--purple-dark);font-weight:800;background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}button:hover{transform:translateY(-1px)}button[aria-pressed="true"],button.primary{color:#fff;background:var(--purple-dark)}button:disabled{opacity:.48;cursor:not-allowed;transform:none}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,.handle:focus{outline:4px solid #2458bd;outline-offset:3px}
+    .hint{margin:9px 0 0;color:var(--muted);font-size:.9rem;line-height:1.6}.legend{display:flex;gap:13px;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:.84rem}.dot{display:inline-block;width:13px;height:13px;margin-right:5px;border-radius:50%;vertical-align:-2px}.dot.move{background:#fff;border:3px solid var(--purple-dark)}.dot.auto{background:var(--purple-soft);border:2px solid var(--purple)}
+    label.field{display:block;margin-top:13px;font-size:.9rem;font-weight:800}.field span{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}.field output{color:var(--purple-dark)}select,input[type="color"]{width:100%;min-height:44px;border:1px solid var(--line);border-radius:11px;background:#fff}select{padding:8px 10px}input[type="range"]{width:100%;accent-color:var(--purple-dark)}input[type="color"]{padding:5px}.check{display:flex;min-height:44px;align-items:center;gap:9px;margin-top:10px;font-weight:700}.check input{width:20px;height:20px;accent-color:var(--purple-dark)}
+    .button-stack{display:grid;gap:9px}.button-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.full{width:100%}.start{min-height:54px;font-size:1.03rem}.status{margin:12px 0 0;color:var(--muted);font-size:.9rem;line-height:1.55}.status strong{color:var(--ink)}
+    .howto{margin:22px 0 48px;padding:22px;border:1px solid var(--line);border-radius:22px;background:var(--paper)}.howto h2{margin:0 0 11px;font-size:1.25rem}.howto ol{margin:0;padding-left:1.45em;line-height:1.9;color:var(--muted)}
+    @media(max-width:850px){.workspace{grid-template-columns:1fr}.controls-panel{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}.section-block+.section-block{margin-top:0;padding-top:0;border-top:0}.section-block:last-child{grid-column:1/-1;margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}}
+    @media(max-width:600px){.wrap{width:min(100% - 20px,520px)}.stage{min-height:400px}svg{height:400px}.controls-panel{display:block}.section-block+.section-block{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}.section-block:last-child{margin-top:22px}.shape-tabs button{font-size:.9rem}.panel-head{padding:14px 16px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sim-tile{animation:none;opacity:1}}
+  </style>
+</head>
+<body>
+  <nav class="wrap"><a href="tessellation-art-guide.html">← 手順書へ戻る</a></nav>
+  <main class="wrap">
+    <header><p class="tag">さわって試す</p><h1>テッセレーション・アートシミュレーター</h1><p class="lead">まず形を選び、白い点を何度でも動かして自分の形を作ろう。準備ができたら、敷き詰めシミュレーションを始めます。</p></header>
+    <div class="workspace">
+      <section class="panel stage-panel" aria-labelledby="canvas-title">
+        <div class="panel-head"><strong id="canvas-title">作品ステージ</strong><span id="modeBadge" class="mode-badge">形を編集中</span></div>
+        <div class="stage">
+          <svg id="stageSvg" viewBox="0 0 760 520" role="img" aria-labelledby="svgTitle svgDesc">
+            <title id="svgTitle">テッセレーションの形編集画面</title><desc id="svgDesc">白い操作点を動かして形を変え、開始ボタンで敷き詰め模様を表示します。</desc>
+            <g id="editLayer"></g><g id="simLayer"></g>
+          </svg>
+          <div id="stageMessage" class="stage-message" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <aside class="panel controls-panel" aria-label="シミュレーターの設定">
+        <section class="section-block">
+          <h2 class="step-title"><span class="step-no">1</span>もとの形を選ぶ</h2>
+          <div class="shape-tabs" role="group" aria-label="形を選択">
+            <button type="button" data-shape="triangle" aria-pressed="true">△ 三角形</button>
+            <button type="button" data-shape="square" aria-pressed="false">□ 四角形</button>
+            <button type="button" data-shape="hexagon" aria-pressed="false">⬡ 六角形</button>
+          </div>
+        </section>
+
+        <section class="section-block">
+          <h2 class="step-title"><span class="step-no">2</span>自分の形を作る</h2>
+          <p class="hint">白い点を指やマウスで動かしてください。反対側の薄紫の点も自動で動きます。点は何度でも変更できます。</p>
+          <div class="legend"><span><i class="dot move"></i>自分で動かす点</span><span><i class="dot auto"></i>自動で動く点</span></div>
+          <div class="button-row" style="margin-top:13px"><button id="gentleButton" type="button">少し変形</button><button id="resetButton" type="button">形を戻す</button></div>
+        </section>
+
+        <section class="section-block">
+          <h2 class="step-title"><span class="step-no">3</span>模様を決める</h2>
+          <label class="field"><span>色の組み合わせ</span><select id="paletteSelect"><option value="bright">明るい色</option><option value="ocean">海の色</option><option value="forest">森の色</option><option value="sunset">夕焼け</option><option value="mono">白黒</option></select></label>
+          <label class="field"><span>模様の密度 <output id="densityOutput">5</output></span><input id="densityRange" type="range" min="3" max="8" value="5"></label>
+          <label class="field"><span>背景色</span><input id="backgroundColor" type="color" value="#f8f5ff"></label>
+          <label class="check"><input id="outlineCheck" type="checkbox" checked>形の輪郭を表示する</label>
+        </section>
+
+        <section class="section-block">
+          <h2 class="step-title"><span class="step-no">4</span>敷き詰めてみる</h2>
+          <div class="button-stack"><button id="startButton" class="primary start full" type="button">▶ シミュレーション開始</button><button id="editButton" class="full" type="button" disabled>✏️ 形の編集に戻る</button></div>
+          <p id="status" class="status"><strong>準備中：</strong>点を動かして、好きな形を作ってください。</p>
+        </section>
+      </aside>
+    </div>
+    <section class="howto"><h2>試行錯誤のコツ</h2><ol><li>まず一つの点だけを少し動かして、シミュレーションしてみる。</li><li>編集に戻り、別の点も動かして模様の変化を比べる。</li><li>色や密度を変え、形の特徴が一番よく見える作品を探す。</li></ol></section>
+  </main>
+
+  <script>
+    (()=>{
+      const svg=document.getElementById('stageSvg'),editLayer=document.getElementById('editLayer'),simLayer=document.getElementById('simLayer');
+      const shapeButtons=[...document.querySelectorAll('[data-shape]')],modeBadge=document.getElementById('modeBadge'),stageMessage=document.getElementById('stageMessage');
+      const paletteSelect=document.getElementById('paletteSelect'),densityRange=document.getElementById('densityRange'),densityOutput=document.getElementById('densityOutput');
+      const backgroundColor=document.getElementById('backgroundColor'),outlineCheck=document.getElementById('outlineCheck');
+      const gentleButton=document.getElementById('gentleButton'),resetButton=document.getElementById('resetButton'),startButton=document.getElementById('startButton'),editButton=document.getElementById('editButton'),status=document.getElementById('status');
+      const palettes={bright:['#ffd166','#ef7965','#5a9bd5','#5fc4aa'],ocean:['#0b5fa5','#38a3a5','#80ced7','#d9f0ff'],forest:['#31572c','#4f772d','#90a955','#d4d98b'],sunset:['#7b2cbf','#c44587','#f77f63','#ffd166'],mono:['#292735','#777484','#c9c7d0','#f3f2f5']};
+      const state={shape:'triangle',mode:'edit',offsets:{triangle:[0,0,0],square:[0,0,0,0,0,0],hexagon:[0,0,0,0,0,0]}};
+      let drag=null;
+      const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+      const point=(x,y)=>({x,y});
+      const pathFrom=pts=>'M '+pts.map(p=>`${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' L ')+' Z';
+      const lineFrom=pts=>'M '+pts.map(p=>`${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' L ');
+      const interp=(a,b,t)=>point(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t);
+      const normal=(a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);return point(-dy/len,dx/len)};
+      const shifted=(p,n,o)=>point(p.x+n.x*o,p.y+n.y*o);
+      const rotate180=p=>point(120-p.x,120-p.y);
+
+      function triangleData(){
+        const a=point(0,0),c=point(140,105),n=normal(a,c),ts=[.125,.25,.375,.5,.625,.75,.875],o=state.offsets.triangle;
+        const vals=[o[0],o[1],o[2],0,-o[2],-o[1],-o[0]];
+        const chain=[a,...ts.map((t,i)=>shifted(interp(a,c,t),n,vals[i])),c];
+        const lower=[a,point(140,0),c,...chain.slice(1,-1).reverse()];
+        const upper=[...chain,point(0,105)];
+        const handles=ts.slice(0,3).map((t,i)=>({p:chain[i+1],base:interp(a,c,t),n,max:32,index:i}));
+        const mirrors=chain.slice(5,8).map(p=>p);
+        return{paths:[pathFrom(lower),pathFrom(upper)],guide:lineFrom(chain),handles,mirrors,bounds:{w:140,h:105}};
+      }
+      function squareData(){
+        const o=state.offsets.square,topA=point(0,0),topB=point(120,0),rightA=point(120,0),rightB=point(120,120),ts=[.25,.5,.75];
+        const nt=normal(topA,topB),nr=normal(rightA,rightB);
+        const top=ts.map((t,i)=>shifted(interp(topA,topB,t),nt,o[i]));
+        const right=ts.map((t,i)=>shifted(interp(rightA,rightB,t),nr,o[i+3]));
+        const bottom=top.slice().reverse().map(p=>point(p.x,p.y+120));
+        const left=right.slice().reverse().map(p=>point(p.x-120,p.y));
+        const pts=[topA,...top,topB,...right,point(120,120),...bottom,point(0,120),...left];
+        const handles=[...top.map((p,i)=>({p,base:interp(topA,topB,ts[i]),n:nt,max:28,index:i})),...right.map((p,i)=>({p,base:interp(rightA,rightB,ts[i]),n:nr,max:28,index:i+3}))];
+        const mirrors=[...bottom,...left];return{paths:[pathFrom(pts)],guide:'',handles,mirrors,bounds:{w:120,h:120}};
+      }
+      function hexagonData(){
+        const v=[point(60,0),point(120,30),point(120,90),point(60,120),point(0,90),point(0,30)],ts=[1/3,2/3],o=state.offsets.hexagon;
+        const first=[];const handles=[];let index=0;
+        for(let e=0;e<3;e++){const n=normal(v[e],v[e+1]);const controls=ts.map(t=>shifted(interp(v[e],v[e+1],t),n,o[index++]));first.push(controls);controls.forEach((p,j)=>handles.push({p,base:interp(v[e],v[e+1],ts[j]),n,max:24,index:e*2+j}))}
+        const opposite=first.map(edge=>edge.map(rotate180));
+        const pts=[v[0],...first[0],v[1],...first[1],v[2],...first[2],v[3],...opposite[0],v[4],...opposite[1],v[5],...opposite[2]];
+        return{paths:[pathFrom(pts)],guide:'',handles,mirrors:opposite.flat(),bounds:{w:120,h:120}};
+      }
+      function data(){return state.shape==='triangle'?triangleData():state.shape==='square'?squareData():hexagonData()}
+      function colorFor(i,r,c){const p=palettes[paletteSelect.value];return p[(i+r+c)%p.length]}
+      function pathMarkup(d,fill,cls='tile',extra=''){const noLine=outlineCheck.checked?'':' no-line';return `<path class="${cls}${noLine}" d="${d}" fill="${fill}" ${extra}></path>`}
+
+      function editorTransform(){if(state.shape==='triangle')return'translate(240 145) scale(2)';if(state.shape==='square')return'translate(260 135) scale(2)';return'translate(260 135) scale(2)'}
+      function renderEditor(){
+        const d=data(),p=palettes[paletteSelect.value],shapePaths=d.paths.map((path,i)=>pathMarkup(path,p[i*2%p.length],i?'tile partner':'tile')).join('');
+        const guide=d.guide?`<path class="cell-guide" d="${d.guide}"></path>`:'';
+        const links=d.handles.map(h=>`<line class="handle-link" x1="${h.base.x}" y1="${h.base.y}" x2="${h.p.x}" y2="${h.p.y}"></line>`).join('');
+        const mirrors=d.mirrors.map(p=>`<circle class="mirror-handle" cx="${p.x}" cy="${p.y}" r="4.8"></circle>`).join('');
+        const handles=d.handles.map(h=>`<circle class="handle" data-handle="${h.index}" cx="${h.p.x}" cy="${h.p.y}" r="7" tabindex="0" role="slider" aria-label="変形点 ${h.index+1}" aria-valuemin="-${h.max}" aria-valuemax="${h.max}" aria-valuenow="${Math.round(state.offsets[state.shape][h.index])}"></circle>`).join('');
+        editLayer.innerHTML=`<g id="editorGroup" transform="${editorTransform()}">${shapePaths}${guide}${links}${mirrors}${handles}</g>`;simLayer.innerHTML='';
+        editLayer.querySelectorAll('.handle').forEach(el=>{el.addEventListener('pointerdown',startDrag);el.addEventListener('keydown',keyMove)});
+      }
+      function svgPoint(event){const group=document.getElementById('editorGroup'),p=svg.createSVGPoint();p.x=event.clientX;p.y=event.clientY;return p.matrixTransform(group.getScreenCTM().inverse())}
+      function startDrag(event){if(state.mode!=='edit')return;event.preventDefault();const index=Number(event.currentTarget.dataset.handle),meta=data().handles.find(h=>h.index===index);drag={index,meta,pointerId:event.pointerId};svg.setPointerCapture(event.pointerId);svg.addEventListener('pointermove',moveDrag);svg.addEventListener('pointerup',endDrag);svg.addEventListener('pointercancel',endDrag)}
+      function moveDrag(event){if(!drag||event.pointerId!==drag.pointerId)return;const p=svgPoint(event),m=drag.meta,dx=p.x-m.base.x,dy=p.y-m.base.y;state.offsets[state.shape][drag.index]=clamp(dx*m.n.x+dy*m.n.y,-m.max,m.max);renderEditor()}
+      function endDrag(){drag=null;svg.removeEventListener('pointermove',moveDrag);svg.removeEventListener('pointerup',endDrag);svg.removeEventListener('pointercancel',endDrag)}
+      function keyMove(event){if(!['ArrowUp','ArrowRight','ArrowDown','ArrowLeft'].includes(event.key))return;event.preventDefault();const i=Number(event.currentTarget.dataset.handle),direction=['ArrowUp','ArrowRight'].includes(event.key)?1:-1,meta=data().handles.find(h=>h.index===i);state.offsets[state.shape][i]=clamp(state.offsets[state.shape][i]+direction*2,-meta.max,meta.max);renderEditor();editLayer.querySelector(`[data-handle="${i}"]`)?.focus()}
+
+      function renderSimulation(){
+        const d=data(),density=Number(densityRange.value),p=palettes[paletteSelect.value],parts=[];let count=0;
+        if(state.shape==='triangle'){
+          const cols=density+2,rows=Math.ceil(density*.72),scale=Math.min(1.05,660/(cols*140)),ox=(760-cols*140*scale)/2,oy=(520-rows*105*scale)/2;
+          for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){for(let i=0;i<2;i++){const delay=count++*.035;parts.push(`<g transform="translate(${ox} ${oy}) scale(${scale}) translate(${c*140} ${r*105})">${pathMarkup(d.paths[i],colorFor(i,r,c),'tile sim-tile',`style="animation-delay:${delay}s"`)}</g>`)}}
+        }else if(state.shape==='square'){
+          const cols=density+1,rows=Math.max(3,Math.ceil(density*.7)),scale=Math.min(1.05,660/(cols*120)),ox=(760-cols*120*scale)/2,oy=(520-rows*120*scale)/2;
+          for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const delay=count++*.045;parts.push(`<g transform="translate(${ox} ${oy}) scale(${scale}) translate(${c*120} ${r*120})">${pathMarkup(d.paths[0],colorFor(0,r,c),'tile sim-tile',`style="animation-delay:${delay}s"`)}</g>`)}
+        }else{
+          const cols=density,rows=Math.max(4,Math.ceil(density*.75)),scale=Math.min(1.02,650/((cols+1)*120)),width=(cols*120+60)*scale,height=(rows*90+30)*scale,ox=(760-width)/2,oy=(520-height)/2;
+          for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const delay=count++*.045,x=c*120+(r%2?60:0),y=r*90;parts.push(`<g transform="translate(${ox} ${oy}) scale(${scale}) translate(${x} ${y})">${pathMarkup(d.paths[0],colorFor(0,r,c),'tile sim-tile',`style="animation-delay:${delay}s"`)}</g>`)}
+        }
+        editLayer.innerHTML='';simLayer.innerHTML=parts.join('');stageMessage.textContent='完成！「形の編集に戻る」で、さらに変えて比べてみよう。';setTimeout(()=>stageMessage.classList.add('show'),Math.min(2500,count*45+500));
+      }
+      function setEditing(editing){state.mode=editing?'edit':'sim';modeBadge.textContent=editing?'形を編集中':'シミュレーション中';startButton.disabled=!editing;editButton.disabled=editing;shapeButtons.forEach(b=>b.disabled=!editing);gentleButton.disabled=!editing;resetButton.disabled=!editing;stageMessage.classList.remove('show');if(editing){renderEditor();status.innerHTML='<strong>編集中：</strong>さらに点を動かして、もう一度試せます。'}else{renderSimulation();status.innerHTML='<strong>完成：</strong>形と色の規則が、画面全体へ広がりました。'}}
+      function chooseShape(next){state.shape=next;shapeButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.shape===next)));renderEditor();status.innerHTML='<strong>準備中：</strong>白い点を動かして、好きな形を作ってください。'}
+      shapeButtons.forEach(b=>b.addEventListener('click',()=>chooseShape(b.dataset.shape)));
+      gentleButton.addEventListener('click',()=>{const arr=state.offsets[state.shape];arr.forEach((_,i)=>arr[i]=Math.round((Math.random()*20-10)*(i%2?-.8:1)));renderEditor()});
+      resetButton.addEventListener('click',()=>{state.offsets[state.shape].fill(0);renderEditor()});
+      paletteSelect.addEventListener('change',()=>state.mode==='edit'?renderEditor():renderSimulation());
+      densityRange.addEventListener('input',()=>{densityOutput.value=densityRange.value;if(state.mode==='sim')renderSimulation()});
+      backgroundColor.addEventListener('input',()=>{document.documentElement.style.setProperty('--stage',backgroundColor.value)});
+      outlineCheck.addEventListener('change',()=>state.mode==='edit'?renderEditor():renderSimulation());
+      startButton.addEventListener('click',()=>setEditing(false));editButton.addEventListener('click',()=>setEditing(true));
+      renderEditor();
+    })();
+  </script>
+</body>
+</html>
