@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#5b4cc4">
+  <title>四色定理チャレンジ｜数学の遊び場</title>
+  <style>
+    :root {
+      --ink: #24324a;
+      --muted: #667085;
+      --paper: #fffdf8;
+      --purple: #5b4cc4;
+      --purple-dark: #40349b;
+      --line: #334155;
+      --soft: #f1efff;
+      --danger: #d92d20;
+      --success: #138a52;
+      --shadow: 0 14px 34px rgba(37, 43, 77, .13);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 8% 8%, #fff2ac 0 8%, transparent 26%),
+        radial-gradient(circle at 92% 18%, #d8f7ed 0 9%, transparent 27%),
+        linear-gradient(145deg, #f8f5ff, #fffdf5 55%, #effbff);
+    }
+
+    button, a { font: inherit; }
+    button { touch-action: manipulation; }
+
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 38px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 25px 28px;
+      border: 1px solid rgba(91, 76, 196, .18);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, .88);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "4";
+      position: absolute;
+      right: 24px;
+      top: -42px;
+      color: rgba(91, 76, 196, .08);
+      font-size: 190px;
+      font-weight: 900;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 7px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      color: var(--purple-dark);
+      background: var(--soft);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: clamp(28px, 5vw, 48px);
+      line-height: 1.22;
+      letter-spacing: .02em;
+    }
+
+    .lead {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: clamp(15px, 2.2vw, 18px);
+      line-height: 1.75;
+    }
+
+    .rules {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 17px;
+    }
+
+    .rule {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 15px;
+      background: #fff;
+      box-shadow: 0 5px 15px rgba(37, 43, 77, .07);
+      font-weight: 700;
+    }
+
+    .rule b {
+      display: grid;
+      flex: 0 0 auto;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--purple);
+    }
+
+    .task-strip {
+      display: flex;
+      gap: 9px;
+      margin: 18px 0;
+      padding: 3px 2px 10px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .task-tab {
+      flex: 0 0 auto;
+      min-width: 116px;
+      min-height: 61px;
+      padding: 8px 13px;
+      border: 2px solid transparent;
+      border-radius: 15px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, .88);
+      box-shadow: 0 5px 15px rgba(37, 43, 77, .08);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .task-tab small { display: block; color: var(--muted); font-weight: 700; }
+    .task-tab strong { display: block; margin-top: 2px; }
+    .task-tab[aria-selected="true"] {
+      border-color: var(--purple);
+      color: var(--purple-dark);
+      background: #f3f0ff;
+      transform: translateY(-2px);
+    }
+
+    .lab {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .board-card, .tool-card {
+      border: 1px solid rgba(51, 65, 85, .13);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: var(--shadow);
+    }
+
+    .board-card { padding: 18px; }
+    .board-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .board-head h2 { margin: 0; font-size: clamp(21px, 3vw, 30px); }
+    .board-head p { margin: 5px 0 0; color: var(--muted); line-height: 1.55; }
+
+    .level {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: #654d00;
+      background: #fff0ad;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .board-wrap {
+      position: relative;
+      overflow: hidden;
+      min-height: 380px;
+      border: 2px solid #e4e7ec;
+      border-radius: 19px;
+      background:
+        linear-gradient(#eef1f7 1px, transparent 1px),
+        linear-gradient(90deg, #eef1f7 1px, transparent 1px),
+        #fbfcff;
+      background-size: 26px 26px;
+    }
+
+    #board {
+      display: block;
+      width: 100%;
+      min-height: 380px;
+      max-height: 590px;
+    }
+
+    .region {
+      fill: #fff;
+      stroke: var(--line);
+      stroke-width: 3;
+      vector-effect: non-scaling-stroke;
+      cursor: pointer;
+      transition: filter .15s ease, opacity .15s ease;
+      outline: none;
+    }
+
+    .region:hover, .region:focus-visible {
+      filter: brightness(.96) drop-shadow(0 0 4px rgba(91, 76, 196, .42));
+    }
+
+    .region.mistake {
+      stroke: var(--danger);
+      stroke-width: 7;
+      filter: drop-shadow(0 0 6px rgba(217, 45, 32, .62));
+      animation: pulse .55s ease 2;
+    }
+
+    @keyframes pulse { 50% { opacity: .57; } }
+
+    .region-label {
+      fill: #263249;
+      paint-order: stroke;
+      stroke: rgba(255, 255, 255, .88);
+      stroke-width: 5px;
+      stroke-linejoin: round;
+      font-size: 17px;
+      font-weight: 900;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      min-height: 58px;
+      margin-top: 12px;
+      padding: 11px 15px;
+      border-radius: 15px;
+      color: var(--purple-dark);
+      background: #f1efff;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .status.error { color: #9d1c13; background: #ffebe9; }
+    .status.success { color: #087344; background: #dff7e9; }
+    .status-icon { margin-right: 10px; font-size: 26px; }
+
+    .tools { display: grid; gap: 14px; }
+    .tool-card { padding: 17px; }
+    .tool-card h3 { margin: 0 0 12px; font-size: 18px; }
+
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .color-button {
+      position: relative;
+      display: grid;
+      min-height: 72px;
+      place-items: center;
+      border: 4px solid transparent;
+      border-radius: 16px;
+      box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .16);
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .color-button[aria-pressed="true"] {
+      border-color: #252a3d;
+      transform: scale(1.04);
+      box-shadow: 0 0 0 4px rgba(91, 76, 196, .18);
+    }
+
+    .color-button[aria-pressed="true"]::after {
+      content: "✓";
+      position: absolute;
+      right: 6px;
+      top: 3px;
+      font-size: 22px;
+    }
+
+    .eraser {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 10px;
+      border: 2px solid #d0d5dd;
+      border-radius: 13px;
+      color: var(--ink);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .eraser[aria-pressed="true"] { border-color: var(--purple); background: var(--soft); }
+
+    .meter { display: grid; gap: 8px; }
+    .meter-row { display: flex; justify-content: space-between; gap: 8px; }
+    .bar { height: 11px; overflow: hidden; border-radius: 99px; background: #e8e9ef; }
+    .bar span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #735fe2, #29b982); transition: width .25s; }
+
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .action {
+      min-height: 48px;
+      border: 0;
+      border-radius: 13px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+    .action.primary { color: #fff; background: var(--purple); }
+    .action.secondary { color: var(--ink); background: #eef0f4; }
+    .action.wide { grid-column: 1 / -1; }
+
+    .mini-note {
+      margin: 14px 1px 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      text-align: center;
+    }
+
+    .home-link {
+      display: inline-block;
+      margin-top: 18px;
+      color: var(--purple-dark);
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .home-link:hover { text-decoration: underline; }
+
+    @media (max-width: 850px) {
+      .lab { grid-template-columns: 1fr; }
+      .tools { grid-template-columns: 1fr 1fr; }
+      .tool-card:first-child { grid-row: span 2; }
+      .palette { grid-template-columns: repeat(4, 1fr); }
+      .color-button { min-height: 64px; }
+    }
+
+    @media (max-width: 620px) {
+      .page { width: min(100% - 16px, 1180px); padding-top: 8px; }
+      .hero { padding: 20px 17px; border-radius: 21px; }
+      .rules { grid-template-columns: 1fr; }
+      .board-card { padding: 12px; border-radius: 19px; }
+      .board-head { display: block; }
+      .level { display: inline-block; margin-top: 9px; }
+      .board-wrap, #board { min-height: 320px; }
+      .tools { grid-template-columns: 1fr; }
+      .tool-card:first-child { grid-row: auto; }
+      .palette { grid-template-columns: repeat(4, 1fr); }
+      .color-button { min-height: 58px; font-size: 13px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">🎨 数学の遊び場</p>
+      <h1>四色定理チャレンジ</h1>
+      <p class="lead">パレットから色を選び、地図の場所をタップしよう。どんな地図でも、となり合う場所が同じ色にならないように4色で塗り分けられるかな？</p>
+      <div class="rules" aria-label="塗り分けのルール">
+        <div class="rule"><b>1</b><span>辺でとなり合う場所は、別の色にする</span></div>
+        <div class="rule"><b>2</b><span>点でさわるだけなら、同じ色でもOK</span></div>
+      </div>
+    </header>
+
+    <nav class="task-strip" id="taskStrip" aria-label="問題を選ぶ"></nav>
+
+    <section class="lab" aria-label="四色定理の問題">
+      <article class="board-card">
+        <div class="board-head">
+          <div>
+            <h2 id="taskTitle"></h2>
+            <p id="taskDescription"></p>
+          </div>
+          <span class="level" id="taskLevel"></span>
+        </div>
+
+        <div class="board-wrap">
+          <svg id="board" role="group" aria-label="色を塗る地図"></svg>
+        </div>
+
+        <div class="status" id="status" role="status" aria-live="polite">
+          <span class="status-icon">👆</span><span>色を選んで、場所をタップしよう。</span>
+        </div>
+      </article>
+
+      <aside class="tools">
+        <section class="tool-card">
+          <h3>① 色を選ぶ</h3>
+          <div class="palette" id="palette" aria-label="色パレット"></div>
+          <button class="eraser" id="eraser" type="button" aria-pressed="false">消しゴム</button>
+          <p class="mini-note">② 地図をタップして色を塗ります。<br>同じ場所は何度でも塗り直せます。</p>
+        </section>
+
+        <section class="tool-card">
+          <h3>進みぐあい</h3>
+          <div class="meter">
+            <div class="meter-row"><span id="progressText">0 / 0</span><strong id="usedText">0色</strong></div>
+            <div class="bar" aria-hidden="true"><span id="progressBar"></span></div>
+          </div>
+        </section>
+
+        <section class="tool-card">
+          <div class="actions">
+            <button class="action secondary" id="prevButton" type="button">← 前の問題</button>
+            <button class="action primary" id="nextButton" type="button">次の問題 →</button>
+            <button class="action secondary wide" id="resetButton" type="button">この問題をやり直す</button>
+          </div>
+        </section>
+      </aside>
+    </section>
+
+    <a class="home-link" href="index.html">← 数学の遊び場へ戻る</a>
+  </main>
+
+  <script>
+    const NS = "http://www.w3.org/2000/svg";
+    const palette = [
+      { id: "red", name: "赤", value: "#ff7474", text: "#4f1717" },
+      { id: "yellow", name: "黄", value: "#ffd85e", text: "#4d3a00" },
+      { id: "blue", name: "青", value: "#6ab8ff", text: "#103a60" },
+      { id: "green", name: "緑", value: "#72d99c", text: "#123f27" }
+    ];
+
+    const R = (id, label, x, y, width, height, lx, ly) => ({
+      id, label, type: "rect", x, y, width, height,
+      lx: lx ?? x + width / 2, ly: ly ?? y + height / 2
+    });
+    const P = (id, label, points, lx, ly) => ({ id, label, type: "polygon", points, lx, ly });
+    const D = (id, label, d, lx, ly, fillRule) => ({ id, label, type: "path", d, lx, ly, fillRule });
+
+    function brickTask() {
+      const regions = [
+        R("a", "A", 35, 35, 115, 90), R("b", "B", 150, 35, 130, 90),
+        R("c", "C", 280, 35, 140, 90), R("d", "D", 420, 35, 140, 90), R("e", "E", 560, 35, 105, 90),
+        P("f", "F", "35,125 220,125 150,225 35,225", 105, 170),
+        P("g", "G", "220,125 400,125 400,225 150,225", 285, 173),
+        R("h", "H", 400, 125, 155, 100), R("i", "I", 555, 125, 110, 100),
+        R("j", "J", 35, 225, 145, 90), R("k", "K", 180, 225, 175, 90),
+        R("l", "L", 355, 225, 170, 90), R("m", "M", 525, 225, 140, 90)
+      ];
+      const adj = [
+        ["a","b"],["b","c"],["c","d"],["d","e"],
+        ["f","g"],["g","h"],["h","i"],["j","k"],["k","l"],["l","m"],
+        ["a","f"],["b","f"],["b","g"],["c","g"],["c","h"],["d","h"],["d","i"],["e","i"],
+        ["f","j"],["f","k"],["g","k"],["g","l"],["h","l"],["h","m"],["i","m"]
+      ];
+      return { id: "brick", short: "問題3", title: "レンガの壁", level: "ふつう", description: "ずれた境界と、ななめの境界に注意して塗ろう。", viewBox: "0 0 700 350", regions, adj };
+    }
+
+    function kinkiTask() {
+      const regions = [
+        R("tottori", "鳥取", 35, 40, 155, 100),
+        R("kyoto", "京都", 190, 40, 220, 100),
+        R("fukui", "福井", 410, 40, 175, 100),
+        R("gifu", "岐阜", 585, 40, 180, 100),
+
+        R("okayama", "岡山", 35, 140, 135, 115),
+        R("hyogo", "兵庫", 170, 140, 165, 115),
+        R("osaka", "大阪", 335, 140, 95, 115),
+        R("shiga", "滋賀", 430, 140, 155, 115),
+        R("aichi", "愛知", 585, 140, 180, 115),
+
+        R("kagawa", "香川", 35, 255, 145, 105),
+        R("awaji", "淡路島", 180, 255, 85, 105),
+        R("wakayama", "和歌山", 265, 255, 165, 105),
+        R("nara", "奈良", 430, 255, 105, 105),
+        R("mie", "三重", 535, 255, 230, 205),
+
+        R("ehime", "愛媛", 35, 360, 145, 100),
+        R("tokushima", "徳島", 180, 360, 175, 100),
+        R("kochi", "高知", 355, 360, 180, 100)
+      ];
+      const adj = [];
+      for (let i = 0; i < regions.length; i++) {
+        for (let j = i + 1; j < regions.length; j++) {
+          const a = regions[i], b = regions[j];
+          const verticalBorder = a.x + a.width === b.x || b.x + b.width === a.x;
+          const horizontalBorder = a.y + a.height === b.y || b.y + b.height === a.y;
+          const yOverlap = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
+          const xOverlap = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+          if ((verticalBorder && yOverlap > 0) || (horizontalBorder && xOverlap > 0)) adj.push([a.id, b.id]);
+        }
+      }
+      return { id: "kinki", short: "問題4", title: "都道府県ブロック地図", level: "むずかしい", description: "境界がはっきり見える長方形の地図です。角の1点だけなら、となりではありません。", viewBox: "0 0 800 500", regions, adj };
+    }
+
+    function ringTask() {
+      const regions = [];
+      const adj = [];
+      const rings = 5;
+      for (let n = 0; n < rings; n++) {
+        const x0 = 40 + n * 55, y0 = 35 + n * 40;
+        const x1 = 760 - n * 55, y1 = 465 - n * 40;
+        const ix0 = x0 + 55, iy0 = y0 + 40, ix1 = x1 - 55, iy1 = y1 - 40;
+        const ids = [`r${n}t`,`r${n}r`,`r${n}b`,`r${n}l`];
+        regions.push(
+          P(ids[0], "", `${x0},${y0} ${x1},${y0} ${ix1},${iy0} ${ix0},${iy0}`, (x0+x1)/2, (y0+iy0)/2),
+          P(ids[1], "", `${x1},${y0} ${x1},${y1} ${ix1},${iy1} ${ix1},${iy0}`, (x1+ix1)/2, (y0+y1)/2),
+          P(ids[2], "", `${x1},${y1} ${x0},${y1} ${ix0},${iy1} ${ix1},${iy1}`, (x0+x1)/2, (y1+iy1)/2),
+          P(ids[3], "", `${x0},${y1} ${x0},${y0} ${ix0},${iy0} ${ix0},${iy1}`, (x0+ix0)/2, (y0+y1)/2)
+        );
+        adj.push([ids[0],ids[1]],[ids[1],ids[2]],[ids[2],ids[3]],[ids[3],ids[0]]);
+        if (n > 0) {
+          const prev = [`r${n-1}t`,`r${n-1}r`,`r${n-1}b`,`r${n-1}l`];
+          for (let s = 0; s < 4; s++) adj.push([prev[s], ids[s]]);
+        }
+      }
+      regions.push(R("center", "★", 315, 235, 170, 30, 400, 251));
+      adj.push(["r4t","center"],["r4r","center"],["r4b","center"],["r4l","center"]);
+      return { id: "maze", short: "問題5", title: "四角い迷路", level: "かなり難しい", description: "外側からでも、中心からでもOK。長い境界を見落とさないで。", viewBox: "0 0 800 500", regions, adj };
+    }
+
+    function mosaicTask() {
+      const regions = [];
+      const rows = 4, cols = 6, x0 = 55, y0 = 45, w = 110, h = 95;
+      let count = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = x0 + c*w, y = y0 + r*h;
+          const id1 = `m${count++}`, id2 = `m${count++}`;
+          if ((r+c) % 2 === 0) {
+            regions.push(P(id1,"",`${x},${y} ${x+w},${y} ${x+w},${y+h}`,x+w*.68,y+h*.32));
+            regions.push(P(id2,"",`${x},${y} ${x+w},${y+h} ${x},${y+h}`,x+w*.32,y+h*.68));
+          } else {
+            regions.push(P(id1,"",`${x},${y} ${x+w},${y} ${x},${y+h}`,x+w*.32,y+h*.32));
+            regions.push(P(id2,"",`${x+w},${y} ${x+w},${y+h} ${x},${y+h}`,x+w*.68,y+h*.68));
+          }
+        }
+      }
+      const edgeMap = new Map();
+      for (const region of regions) {
+        const pts = region.points.split(" ").map(pair => pair.split(",").map(Number));
+        pts.forEach((p, i) => {
+          const q = pts[(i+1)%pts.length];
+          const key = [p.join(","), q.join(",")].sort().join("|");
+          if (!edgeMap.has(key)) edgeMap.set(key, []);
+          edgeMap.get(key).push(region.id);
+        });
+      }
+      const adj = [];
+      edgeMap.forEach(ids => { if (ids.length === 2) adj.push(ids); });
+      return { id: "mosaic", short: "問題6", title: "幾何学モザイク", level: "超むずかしい", description: "48枚の三角形を塗り分けよう。点で会うだけの場所は同じ色で大丈夫。", viewBox: "0 0 770 470", regions, adj };
+    }
+
+    function fourNeededTask() {
+      const regions = [
+        D("outer", "D", "M35 30H765V470H35Z M400 75L145 405L655 405Z", 400, 448, "evenodd"),
+        P("north", "A", "400,75 145,405 400,260", 307, 242),
+        P("south", "B", "145,405 655,405 400,260", 400, 355),
+        P("east", "C", "655,405 400,75 400,260", 505, 242)
+      ];
+      const adj = [["north","south"],["south","east"],["east","north"],["outer","north"],["outer","south"],["outer","east"]];
+      return { id: "four", short: "難問7", title: "4色が本当に必要！", level: "スペシャル", description: "4つの場所が、どの組み合わせでも辺でとなり合っています。3色でできるかな？", viewBox: "0 0 800 500", regions, adj };
+    }
+
+    const tasks = [
+      {
+        id: "warm-a", short: "問題1", title: "ウォームアップA", level: "やさしい",
+        description: "いちばん少ない色で塗ることにも挑戦しよう。",
+        viewBox: "0 0 600 360",
+        regions: [R("a","A",60,70,240,110),R("b","B",300,70,240,110),R("c","C",60,180,120,110),R("d","D",180,180,240,110),R("e","E",420,180,120,110)],
+        adj: [["a","b"],["a","c"],["a","d"],["b","d"],["b","e"],["c","d"],["d","e"]]
+      },
+      {
+        id: "warm-b", short: "問題2", title: "ウォームアップB", level: "やさしい",
+        description: "角の1点だけで出会う場所は、となりではありません。",
+        viewBox: "0 0 600 360",
+        regions: [R("a","A",70,70,300,110),R("b","B",370,70,160,110),R("c","C",70,180,300,110),R("d","D",370,180,160,110)],
+        adj: [["a","b"],["a","c"],["b","d"],["c","d"]]
+      },
+      brickTask(), kinkiTask(), ringTask(), mosaicTask(), fourNeededTask()
+    ];
+
+    let currentIndex = 0;
+    let selectedColor = palette[0].id;
+    const answers = Object.fromEntries(tasks.map(task => [task.id, {}]));
+
+    const board = document.getElementById("board");
+    const taskStrip = document.getElementById("taskStrip");
+    const paletteEl = document.getElementById("palette");
+    const eraser = document.getElementById("eraser");
+    const status = document.getElementById("status");
+
+    function makeSvg(name, attrs = {}) {
+      const el = document.createElementNS(NS, name);
+      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+      return el;
+    }
+
+    function buildControls() {
+      palette.forEach(color => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "color-button";
+        button.dataset.color = color.id;
+        button.textContent = color.name;
+        button.style.background = color.value;
+        button.style.color = color.text;
+        button.setAttribute("aria-label", `${color.name}を選ぶ`);
+        button.addEventListener("click", () => selectColor(color.id));
+        paletteEl.appendChild(button);
+      });
+
+      tasks.forEach((task, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "task-tab";
+        button.innerHTML = `<small>${task.short}</small><strong>${task.title}</strong>`;
+        button.setAttribute("aria-selected", index === 0 ? "true" : "false");
+        button.addEventListener("click", () => showTask(index));
+        taskStrip.appendChild(button);
+      });
+      selectColor(selectedColor);
+    }
+
+    function selectColor(id) {
+      selectedColor = id;
+      document.querySelectorAll(".color-button").forEach(button => {
+        button.setAttribute("aria-pressed", button.dataset.color === id ? "true" : "false");
+      });
+      eraser.setAttribute("aria-pressed", id === null ? "true" : "false");
+    }
+
+    function drawRegion(region, task) {
+      let shape;
+      if (region.type === "rect") shape = makeSvg("rect", { x: region.x, y: region.y, width: region.width, height: region.height });
+      if (region.type === "polygon") shape = makeSvg("polygon", { points: region.points });
+      if (region.type === "path") shape = makeSvg("path", { d: region.d, "fill-rule": region.fillRule || "nonzero" });
+      shape.classList.add("region");
+      shape.dataset.id = region.id;
+      shape.setAttribute("tabindex", "0");
+      shape.setAttribute("role", "button");
+      shape.setAttribute("aria-label", `${region.label || "この場所"}を塗る`);
+      const colorId = answers[task.id][region.id];
+      const color = palette.find(item => item.id === colorId);
+      shape.style.fill = color ? color.value : "#fff";
+      shape.addEventListener("click", () => paintRegion(region.id));
+      shape.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          paintRegion(region.id);
+        }
+      });
+      board.appendChild(shape);
+
+      if (region.label) {
+        const text = makeSvg("text", { x: region.lx, y: region.ly, class: "region-label" });
+        text.textContent = region.label;
+        board.appendChild(text);
+      }
+    }
+
+    function showTask(index) {
+      currentIndex = (index + tasks.length) % tasks.length;
+      const task = tasks[currentIndex];
+      document.getElementById("taskTitle").textContent = `${task.short}　${task.title}`;
+      document.getElementById("taskDescription").textContent = task.description;
+      document.getElementById("taskLevel").textContent = task.level;
+      board.setAttribute("viewBox", task.viewBox);
+      board.innerHTML = "";
+      task.regions.forEach(region => drawRegion(region, task));
+      document.querySelectorAll(".task-tab").forEach((button, i) => button.setAttribute("aria-selected", i === currentIndex ? "true" : "false"));
+      document.querySelectorAll(".task-tab")[currentIndex].scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      updateState();
+    }
+
+    function paintRegion(id) {
+      const task = tasks[currentIndex];
+      if (selectedColor === null) delete answers[task.id][id];
+      else answers[task.id][id] = selectedColor;
+      showTask(currentIndex);
+    }
+
+    function conflictsFor(task) {
+      const answer = answers[task.id];
+      return task.adj.filter(([a,b]) => answer[a] && answer[a] === answer[b]);
+    }
+
+    function setStatus(kind, icon, message) {
+      status.className = `status${kind ? ` ${kind}` : ""}`;
+      status.innerHTML = `<span class="status-icon">${icon}</span><span>${message}</span>`;
+    }
+
+    function updateState() {
+      const task = tasks[currentIndex];
+      const answer = answers[task.id];
+      const painted = task.regions.filter(region => answer[region.id]).length;
+      const used = new Set(Object.values(answer)).size;
+      const conflicts = conflictsFor(task);
+      const badIds = new Set(conflicts.flat());
+      board.querySelectorAll(".region").forEach(shape => shape.classList.toggle("mistake", badIds.has(shape.dataset.id)));
+      document.getElementById("progressText").textContent = `${painted} / ${task.regions.length}か所`;
+      document.getElementById("usedText").textContent = `${used}色`;
+      document.getElementById("progressBar").style.width = `${painted / task.regions.length * 100}%`;
+
+      if (conflicts.length) {
+        setStatus("error", "⚠️", "ミス！ 辺でとなり合う場所が同じ色です。赤い線の場所を塗り直そう。");
+      } else if (painted === task.regions.length) {
+        setStatus("success", "🎉", `完成！ ${used}色で、正しく塗り分けられました。`);
+      } else if (painted > 0) {
+        setStatus("", "👍", `今のところ正解！ あと${task.regions.length - painted}か所です。`);
+      } else {
+        setStatus("", "👆", "色を選んで、場所をタップしよう。");
+      }
+      document.getElementById("prevButton").disabled = currentIndex === 0;
+      document.getElementById("nextButton").textContent = currentIndex === tasks.length - 1 ? "問題1へ ↻" : "次の問題 →";
+    }
+
+    eraser.addEventListener("click", () => selectColor(null));
+    document.getElementById("resetButton").addEventListener("click", () => {
+      answers[tasks[currentIndex].id] = {};
+      showTask(currentIndex);
+    });
+    document.getElementById("prevButton").addEventListener("click", () => { if (currentIndex > 0) showTask(currentIndex - 1); });
+    document.getElementById("nextButton").addEventListener("click", () => showTask(currentIndex + 1));
+
+    buildControls();
+    showTask(0);
+  </script>
+</body>
+</html>

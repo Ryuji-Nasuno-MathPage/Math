@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="ハノイの塔とテッセレーションを楽しみ、数学と芸術を探究できる遊び場です。">
+  <meta name="description" content="ハノイの塔、テッセレーション、四色定理を楽しみ、数学と芸術を探究できる遊び場です。">
   <meta name="theme-color" content="#fff8e7">
   <title>数学の遊び場</title>
   <style>
@@ -18,6 +18,8 @@
       --tessellation-dark: #1765ad;
       --guide: #8b5bc7;
       --guide-dark: #6940a2;
+      --four-color: #22a46f;
+      --four-color-dark: #147a50;
       --focus: #1f57c3;
       --shadow: 0 16px 34px rgba(55, 66, 94, 0.14);
     }
@@ -153,6 +155,12 @@
       --accent-soft: rgba(139, 91, 199, 0.18);
     }
 
+    .four-color {
+      --accent: var(--four-color);
+      --accent-dark: var(--four-color-dark);
+      --accent-soft: rgba(34, 164, 111, 0.18);
+    }
+
     .icon {
       display: grid;
       width: 72px;
@@ -263,6 +271,13 @@
         <h2>テッセレーション芸術</h2>
         <p>模様を作品に育てるための、アイデアと作り方を見てみよう。</p>
         <span class="button">手順書を見る <span class="arrow" aria-hidden="true">→</span></span>
+      </a>
+
+      <a class="card four-color" href="four-color-lab.html">
+        <span class="icon" aria-hidden="true">🗺️</span>
+        <h2>四色定理チャレンジ</h2>
+        <p>4色のパレットを使って、となり合う場所を別々の色に塗り分けよう。</p>
+        <span class="button">問題に挑戦する <span class="arrow" aria-hidden="true">→</span></span>
       </a>
     </section>
 
