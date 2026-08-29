@@ -477,65 +477,87 @@
 
     function kinkiTask() {
       const regions = [
-        R("tottori", "鳥取", 35, 40, 155, 100),
-        R("kyoto", "京都", 190, 40, 220, 100),
-        R("fukui", "福井", 410, 40, 175, 100),
-        R("gifu", "岐阜", 585, 40, 180, 100),
+        D("water", "瀬戸内海・太平洋", "M25 255H470V350H410V330H380V360H300V335H210V360H115V280H25Z M25 490H650V410H875V525H25Z", 450, 505),
+        D("japan-sea", "日本海", "M25 25H875V100H690V145H525V115H385V100H25Z", 450, 63),
 
-        R("okayama", "岡山", 35, 140, 135, 115),
-        R("hyogo", "兵庫", 170, 140, 165, 115),
-        R("osaka", "大阪", 335, 140, 95, 115),
-        R("shiga", "滋賀", 430, 140, 155, 115),
-        R("aichi", "愛知", 585, 140, 180, 115),
+        R("tottori", "鳥取", 25, 100, 230, 70),
+        R("okayama", "岡山", 25, 170, 185, 85),
+        D("hyogo", "兵庫", "M255 100H385V115H525V215H470V245H210V170H255Z", 355, 163),
+        D("kyoto", "京都", "M525 145H690V205H650V280H560V215H525Z", 610, 185),
+        D("fukui", "福井", "M690 100H875V180H780V205H690Z", 785, 137),
+        R("gifu", "岐阜", 780, 180, 95, 85),
+        D("aichi", "愛知", "M780 265H875V320H760V300H780Z", 826, 289),
+        R("shiga", "滋賀", 650, 205, 110, 95),
+        R("lake", "琵琶湖", 685, 219, 40, 46),
+        D("osaka", "大阪", "M470 245H525V215H560V310H520V350H410V330H430V280H470Z", 502, 292),
+        D("nara", "奈良", "M520 310H650V410H500V350H520Z", 580, 360),
+        D("mie", "三重", "M650 300H760V320H875V465H800V490H650V410Z", 750, 390),
+        D("wakayama", "和歌山", "M410 350H500V410H650V490H450V465H410Z", 520, 447),
 
-        R("kagawa", "香川", 35, 255, 145, 105),
-        R("awaji", "淡路島", 180, 255, 85, 105),
-        R("wakayama", "和歌山", 265, 255, 165, 105),
-        R("nara", "奈良", 430, 255, 105, 105),
-        R("mie", "三重", 535, 255, 230, 205),
-
-        R("ehime", "愛媛", 35, 360, 145, 100),
-        R("tokushima", "徳島", 180, 360, 175, 100),
-        R("kochi", "高知", 355, 360, 180, 100)
+        D("kagawa", "香川", "M115 280H300V335H210V360H115Z", 196, 317),
+        D("ehime", "愛媛", "M25 280H115V360H90V410H25Z", 67, 341),
+        D("tokushima", "徳島", "M115 360H300V410H325V460H180V445H115Z", 220, 407),
+        D("kochi", "高知", "M25 410H180V445H325V460H250V490H25Z", 137, 459),
+        R("awaji", "淡路島", 330, 280, 50, 60, 355, 310)
       ];
-      const adj = [];
-      for (let i = 0; i < regions.length; i++) {
-        for (let j = i + 1; j < regions.length; j++) {
-          const a = regions[i], b = regions[j];
-          const verticalBorder = a.x + a.width === b.x || b.x + b.width === a.x;
-          const horizontalBorder = a.y + a.height === b.y || b.y + b.height === a.y;
-          const yOverlap = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
-          const xOverlap = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
-          if ((verticalBorder && yOverlap > 0) || (horizontalBorder && xOverlap > 0)) adj.push([a.id, b.id]);
-        }
-      }
-      return { id: "kinki", short: "問題4", title: "都道府県ブロック地図", level: "むずかしい", description: "境界がはっきり見える長方形の地図です。角の1点だけなら、となりではありません。", viewBox: "0 0 800 500", regions, adj };
+      const adj = [
+        ["japan-sea","tottori"],["japan-sea","hyogo"],["japan-sea","kyoto"],["japan-sea","fukui"],
+        ["water","okayama"],["water","hyogo"],["water","osaka"],["water","wakayama"],["water","mie"],
+        ["water","aichi"],["water","kagawa"],["water","ehime"],["water","tokushima"],["water","kochi"],["water","awaji"],
+        ["tottori","okayama"],["tottori","hyogo"],["okayama","hyogo"],
+        ["hyogo","kyoto"],["hyogo","osaka"],["kyoto","fukui"],["kyoto","shiga"],["kyoto","osaka"],
+        ["fukui","shiga"],["fukui","gifu"],["shiga","gifu"],["shiga","aichi"],["shiga","mie"],["shiga","nara"],
+        ["gifu","aichi"],["aichi","mie"],["lake","shiga"],
+        ["osaka","nara"],["osaka","wakayama"],["nara","wakayama"],["nara","mie"],["wakayama","mie"],
+        ["kagawa","ehime"],["kagawa","tokushima"],["ehime","tokushima"],["ehime","kochi"],["tokushima","kochi"],
+        ["awaji","hyogo"],["awaji","tokushima"]
+      ];
+      return { id: "kinki", short: "問題4", title: "海のある近畿地図", level: "むずかしい", description: "海も色を塗る場所です。瀬戸内海と太平洋はつながった1つの場所として、同時に同じ色になります。", viewBox: "0 0 900 550", regions, adj };
     }
 
     function ringTask() {
       const regions = [];
+      const splitRow = (prefix, x, y, width, height, count) => {
+        for (let i = 0; i < count; i++) {
+          const left = x + width * i / count;
+          const right = x + width * (i + 1) / count;
+          regions.push(R(`${prefix}${i}`, "", left, y, right - left, height));
+        }
+      };
+      const splitSide = (prefix, x, y, width, height, count) => {
+        for (let i = 0; i < count; i++) {
+          const top = y + height * i / count;
+          const bottom = y + height * (i + 1) / count;
+          regions.push(R(`${prefix}${i}`, "", x, top, width, bottom - top));
+        }
+      };
+      const configs = [
+        { x: 25,  y: 25,  x2: 775, y2: 475, t: 48, top: 1, bottom: 2, left: 1, right: 2 },
+        { x: 73,  y: 73,  x2: 727, y2: 427, t: 48, top: 5, bottom: 4, left: 2, right: 3 },
+        { x: 121, y: 121, x2: 679, y2: 379, t: 48, top: 4, bottom: 4, left: 2, right: 2 },
+        { x: 169, y: 169, x2: 631, y2: 331, t: 48, top: 3, bottom: 3, left: 1, right: 2 }
+      ];
+      configs.forEach((c, n) => {
+        splitRow(`r${n}t`, c.x, c.y, c.x2-c.x, c.t, c.top);
+        splitRow(`r${n}b`, c.x, c.y2-c.t, c.x2-c.x, c.t, c.bottom);
+        splitSide(`r${n}l`, c.x, c.y+c.t, c.t, c.y2-c.y-2*c.t, c.left);
+        splitSide(`r${n}r`, c.x2-c.t, c.y+c.t, c.t, c.y2-c.y-2*c.t, c.right);
+      });
+      splitRow("center", 217, 217, 366, 66, 3);
+
       const adj = [];
-      const rings = 5;
-      for (let n = 0; n < rings; n++) {
-        const x0 = 40 + n * 55, y0 = 35 + n * 40;
-        const x1 = 760 - n * 55, y1 = 465 - n * 40;
-        const ix0 = x0 + 55, iy0 = y0 + 40, ix1 = x1 - 55, iy1 = y1 - 40;
-        const ids = [`r${n}t`,`r${n}r`,`r${n}b`,`r${n}l`];
-        regions.push(
-          P(ids[0], "", `${x0},${y0} ${x1},${y0} ${ix1},${iy0} ${ix0},${iy0}`, (x0+x1)/2, (y0+iy0)/2),
-          P(ids[1], "", `${x1},${y0} ${x1},${y1} ${ix1},${iy1} ${ix1},${iy0}`, (x1+ix1)/2, (y0+y1)/2),
-          P(ids[2], "", `${x1},${y1} ${x0},${y1} ${ix0},${iy1} ${ix1},${iy1}`, (x0+x1)/2, (y1+iy1)/2),
-          P(ids[3], "", `${x0},${y1} ${x0},${y0} ${ix0},${iy0} ${ix0},${iy1}`, (x0+ix0)/2, (y0+y1)/2)
-        );
-        adj.push([ids[0],ids[1]],[ids[1],ids[2]],[ids[2],ids[3]],[ids[3],ids[0]]);
-        if (n > 0) {
-          const prev = [`r${n-1}t`,`r${n-1}r`,`r${n-1}b`,`r${n-1}l`];
-          for (let s = 0; s < 4; s++) adj.push([prev[s], ids[s]]);
+      for (let i = 0; i < regions.length; i++) {
+        for (let j = i + 1; j < regions.length; j++) {
+          const a = regions[i], b = regions[j];
+          const close = (v1, v2) => Math.abs(v1-v2) < .01;
+          const verticalBorder = close(a.x+a.width,b.x) || close(b.x+b.width,a.x);
+          const horizontalBorder = close(a.y+a.height,b.y) || close(b.y+b.height,a.y);
+          const yOverlap = Math.min(a.y+a.height,b.y+b.height)-Math.max(a.y,b.y);
+          const xOverlap = Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x);
+          if ((verticalBorder && yOverlap > .01) || (horizontalBorder && xOverlap > .01)) adj.push([a.id,b.id]);
         }
       }
-      regions.push(R("center", "★", 315, 235, 170, 30, 400, 251));
-      adj.push(["r4t","center"],["r4r","center"],["r4b","center"],["r4l","center"]);
-      return { id: "maze", short: "問題5", title: "四角い迷路", level: "かなり難しい", description: "外側からでも、中心からでもOK。長い境界を見落とさないで。", viewBox: "0 0 800 500", regions, adj };
+      return { id: "maze", short: "問題5", title: "縦線だらけの四角い迷路", level: "かなり難しい", description: "元のワークシートのように、枠の途中が細い縦線で分かれています。小さな区画を見落とさないで。", viewBox: "0 0 800 500", regions, adj };
     }
 
     function mosaicTask() {
@@ -578,7 +600,7 @@
         P("east", "C", "655,405 400,75 400,260", 505, 242)
       ];
       const adj = [["north","south"],["south","east"],["east","north"],["outer","north"],["outer","south"],["outer","east"]];
-      return { id: "four", short: "難問7", title: "4色が本当に必要！", level: "スペシャル", description: "4つの場所が、どの組み合わせでも辺でとなり合っています。3色でできるかな？", viewBox: "0 0 800 500", regions, adj };
+      return { id: "four", short: "発見問題", title: "4色が本当に必要！", level: "スペシャル", description: "4つの場所が、どの組み合わせでも辺でとなり合っています。3色でできるかな？", viewBox: "0 0 800 500", regions, adj };
     }
 
     const tasks = [
@@ -596,7 +618,7 @@
         regions: [R("a","A",70,70,300,110),R("b","B",370,70,160,110),R("c","C",70,180,300,110),R("d","D",370,180,160,110)],
         adj: [["a","b"],["a","c"],["b","d"],["c","d"]]
       },
-      brickTask(), kinkiTask(), ringTask(), mosaicTask(), fourNeededTask()
+      fourNeededTask(), brickTask(), mosaicTask(), kinkiTask(), ringTask()
     ];
 
     let currentIndex = 0;
