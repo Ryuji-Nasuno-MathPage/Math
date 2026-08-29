@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="三角形・四角形・六角形がテッセレーション芸術へ変化する動く見本です。">
+  <meta name="theme-color" content="#f7f1ff">
+  <title>3つの形からテッセレーション芸術へ｜動く見本</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:#2d2940; --muted:#686277; --paper:rgba(255,255,255,.95);
+      --purple:#6d48a4; --purple-dark:#4f307d; --yellow:#ffd166;
+      --coral:#ef7965; --blue:#5a9bd5; --mint:#5fc4aa;
+      --line:rgba(79,48,125,.18); --shadow:0 18px 44px rgba(52,40,81,.14);
+    }
+    *{box-sizing:border-box}
+    body{min-height:100vh;margin:0;color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;background:radial-gradient(circle at 8% 9%,rgba(255,209,102,.32) 0 8%,transparent 8.5%),radial-gradient(circle at 92% 14%,rgba(95,196,170,.25) 0 9%,transparent 9.5%),linear-gradient(145deg,#fffaf0 0%,#f8f3ff 52%,#edf8ff 100%)}
+    .wrap{width:min(100% - 28px,1040px);margin-inline:auto}
+    nav{display:flex;min-height:70px;align-items:center}
+    nav a{display:inline-flex;min-height:44px;align-items:center;padding:9px 14px;border-radius:13px;color:inherit;font-weight:800;text-decoration:none;background:rgba(255,255,255,.76)}
+    main{padding-bottom:48px}.hero{text-align:center}.eyebrow{display:inline-block;margin:0 0 10px;padding:6px 13px;border-radius:999px;color:var(--purple-dark);background:#eee3ff;font-weight:800}
+    h1{margin:0;font-size:clamp(1.8rem,5vw,3.35rem);line-height:1.25;letter-spacing:.02em;text-wrap:balance}
+    .lead{margin:12px auto 22px;max-width:760px;color:var(--muted);line-height:1.75}
+    .shape-tabs{display:flex;justify-content:center;gap:10px;margin:0 auto 18px;flex-wrap:wrap}
+    button{min-height:48px;padding:10px 18px;border:2px solid var(--purple-dark);border-radius:14px;color:var(--purple-dark);font:inherit;font-weight:800;background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .shape-tabs button[aria-pressed="true"],button.primary{color:#fff;background:var(--purple-dark)}
+    button:hover{transform:translateY(-1px)}button:focus-visible,nav a:focus-visible{outline:4px solid #2458bd;outline-offset:4px}
+    .player{overflow:hidden;border:1px solid var(--line);border-radius:28px;background:var(--paper);box-shadow:var(--shadow)}
+    .stage{position:relative;aspect-ratio:16/9;min-height:300px;overflow:hidden;background:linear-gradient(150deg,#fffdf8,#f5efff 56%,#eef9ff)}
+    svg{display:block;width:100%;height:100%}.tile{stroke:rgba(45,41,64,.5);stroke-width:1.4;vector-effect:non-scaling-stroke;stroke-linejoin:round}.guide-line{fill:none;stroke:rgba(79,48,125,.3);stroke-width:2;stroke-dasharray:7 7;vector-effect:non-scaling-stroke}
+    .annotation{fill:var(--ink);font-family:inherit;font-size:24px;font-weight:800;text-anchor:middle}.sub-annotation{fill:var(--muted);font-family:inherit;font-size:16px;text-anchor:middle}
+    .controls{display:flex;align-items:center;gap:12px;padding:16px clamp(16px,3vw,26px) 10px}.progress-area{flex:1;min-width:120px}.progress-labels{display:flex;justify-content:space-between;gap:10px;margin-bottom:7px;color:var(--muted);font-size:.86rem;font-weight:700}.progress{height:9px;overflow:hidden;border-radius:999px;background:#e9e2f1}.progress-bar{width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--purple),var(--blue))}
+    .status{min-height:58px;margin:0;padding:12px 24px 18px;color:var(--muted);text-align:center;font-size:clamp(.95rem,2.2vw,1.1rem);font-weight:700;line-height:1.55}
+    .shape-info{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}.info{padding:18px;border:1px solid var(--line);border-radius:20px;background:var(--paper)}.info strong{display:block;margin-bottom:6px;color:var(--purple-dark)}.info p{margin:0;color:var(--muted);line-height:1.65}
+    @media(max-width:720px){.stage{min-height:280px;aspect-ratio:4/3}.controls{flex-wrap:wrap}.progress-area{order:3;width:100%;flex-basis:100%}.shape-info{grid-template-columns:1fr}.annotation{font-size:28px}.sub-annotation{font-size:19px}}
+    @media(max-width:390px){.controls button{flex:1}.shape-tabs button{flex:1;min-width:92px}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <nav class="wrap" aria-label="ページ案内"><a href="tessellation-art-guide.html">← 手順書へ戻る</a></nav>
+  <main class="wrap">
+    <header class="hero">
+      <p class="eyebrow">3つの動く見本</p>
+      <h1>形を崩して、テッセレーション芸術へ</h1>
+      <p class="lead">形を選ぶと、変形・組み合わせ・くり返しの順にアニメーションが始まります。</p>
+    </header>
+
+    <div class="shape-tabs" role="group" aria-label="もとの形を選ぶ">
+      <button type="button" data-shape="triangle" aria-pressed="true">△ 三角形版</button>
+      <button type="button" data-shape="square" aria-pressed="false">□ 四角形版</button>
+      <button type="button" data-shape="hexagon" aria-pressed="false">⬡ 六角形版</button>
+    </div>
+
+    <section class="player" aria-labelledby="demo-title">
+      <h2 id="demo-title" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">形からテッセレーションへ変化するアニメーション</h2>
+      <div class="stage">
+        <svg viewBox="0 0 900 560" role="img" aria-labelledby="svgTitle svgDesc">
+          <title id="svgTitle">選んだ形からテッセレーション模様ができる過程</title>
+          <desc id="svgDesc">形を少し変え、同じ形を組み合わせ、平行移動で画面全体へ広げます。</desc>
+          <defs><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#342851" flood-opacity=".18"/></filter></defs>
+          <g id="gridGroup" opacity="0"></g>
+          <g id="focusGroup" filter="url(#shadow)"></g>
+          <text id="mainLabel" class="annotation" x="450" y="80">もとの三角形</text>
+          <text id="subLabel" class="sub-annotation" x="450" y="112">まずは形を一つ用意します</text>
+        </svg>
+      </div>
+      <div class="controls">
+        <button id="playButton" class="primary" type="button">一時停止</button>
+        <button id="restartButton" type="button">最初から</button>
+        <div class="progress-area" aria-hidden="true"><div class="progress-labels"><span>もとの形</span><span>作品</span></div><div class="progress"><div id="progressBar" class="progress-bar"></div></div></div>
+      </div>
+      <p id="status" class="status" aria-live="polite">① もとの三角形を観察します。</p>
+    </section>
+
+    <section class="shape-info" aria-label="3つの形の特徴">
+      <article class="info"><strong>△ 三角形</strong><p>同じ形を180度回転すると、二つで四角形の組になります。</p></article>
+      <article class="info"><strong>□ 四角形</strong><p>向かい合う辺を同じように変えると、平行移動でつながります。</p></article>
+      <article class="info"><strong>⬡ 六角形</strong><p>向かい合う辺の関係を保つと、蜂の巣のように広がります。</p></article>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const focus=document.getElementById('focusGroup'),grid=document.getElementById('gridGroup');
+      const mainLabel=document.getElementById('mainLabel'),subLabel=document.getElementById('subLabel');
+      const status=document.getElementById('status'),progressBar=document.getElementById('progressBar');
+      const playButton=document.getElementById('playButton'),restartButton=document.getElementById('restartButton');
+      const tabButtons=[...document.querySelectorAll('[data-shape]')];
+      const colors=['#ffd166','#ef7965','#5a9bd5','#5fc4aa'];
+      const total=12500;
+      let shape='triangle',startTime=performance.now(),pausedAt=0,playing=true,lastStage=-1;
+      const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+      const ease=v=>v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2;
+      const mix=(a,b,t)=>a+(b-a)*t;
+      const interpolate=(a,b,t)=>a.map((p,i)=>[mix(p[0],b[i][0],t),mix(p[1],b[i][1],t)]);
+      const polygonPath=points=>'M '+points.map(p=>p.join(' ')).join(' L ')+' Z';
+
+      const triangleBase=[[0,0],[25,18.75],[45,33.75],[60,45],[75,56.25],[95,71.25],[120,90]];
+      const triangleArt=[[0,0],[25,32],[45,28],[60,45],[75,62],[95,58],[120,90]];
+      const squareBase=[[0,0],[30,0],[60,0],[90,0],[120,0],[120,30],[120,60],[120,90],[120,120],[90,120],[60,120],[30,120],[0,120],[0,90],[0,60],[0,30]];
+      const squareArt=[[0,0],[30,-10],[60,8],[90,-10],[120,0],[132,30],[114,60],[132,90],[120,120],[90,110],[60,128],[30,110],[0,120],[12,90],[-6,60],[12,30]];
+      const hexBase=[[60,0],[90,15],[120,30],[120,60],[120,90],[90,105],[60,120],[30,105],[0,90],[0,60],[0,30],[30,15]];
+      const hexArt=[[60,0],[94,7],[120,30],[132,60],[120,90],[86,113],[60,120],[26,113],[0,90],[-12,60],[0,30],[34,7]];
+
+      function trianglePaths(t){
+        const pts=interpolate(triangleBase,triangleArt,t),forward=pts.map(p=>p.join(' ')).join(' L '),reverse=pts.slice(1,-1).reverse().map(p=>p.join(' ')).join(' L ');
+        return {a:`M 0 0 L 120 0 L 120 90 L ${reverse} Z`,b:`M ${forward} L 0 90 Z`,guide:`M ${forward}`};
+      }
+      function currentPath(t){
+        if(shape==='square')return polygonPath(interpolate(squareBase,squareArt,t));
+        if(shape==='hexagon')return polygonPath(interpolate(hexBase,hexArt,t));
+        return trianglePaths(t).a;
+      }
+      function tile(path,fill,transform='',opacity=1){return `<path class="tile" d="${path}" fill="${fill}" transform="${transform}" opacity="${opacity}"></path>`}
+
+      function drawFocus(deform,pair){
+        if(shape==='triangle'){
+          const p=trianglePaths(deform);
+          focus.setAttribute('transform','translate(330 180) scale(2)');
+          focus.innerHTML=tile(p.a,colors[0])+tile(p.b,colors[2],'',pair)+`<path class="guide-line" d="${p.guide}" opacity="${1-pair*.6}"></path>`;
+        }else if(shape==='square'){
+          const p=currentPath(deform);focus.setAttribute('transform','translate(276 150) scale(1.45)');
+          focus.innerHTML=tile(p,colors[0])+tile(p,colors[1],'translate(120 0)',pair)+tile(p,colors[2],'translate(0 120)',pair)+tile(p,colors[3],'translate(120 120)',pair);
+        }else{
+          const p=currentPath(deform);focus.setAttribute('transform','translate(282 135) scale(1.4)');
+          focus.innerHTML=tile(p,colors[0])+tile(p,colors[1],'translate(120 0)',pair)+tile(p,colors[2],'translate(60 90)',pair)+tile(p,colors[3],'translate(-60 90)',pair);
+        }
+      }
+
+      function buildGrid(){
+        let html='';
+        if(shape==='triangle'){
+          const p=trianglePaths(1);
+          for(let r=0;r<5;r++)for(let c=0;c<6;c++){const x=90+c*120,y=65+r*90;html+=`<g transform="translate(${x} ${y})">${tile(p.a,colors[(r+c)%4])}${tile(p.b,colors[(r+c+2)%4])}</g>`}
+        }else if(shape==='square'){
+          const p=polygonPath(squareArt);
+          for(let r=0;r<4;r++)for(let c=0;c<7;c++)html+=tile(p,colors[(r+c)%4],`translate(${35+c*120} ${40+r*120})`);
+        }else{
+          const p=polygonPath(hexArt);
+          for(let r=0;r<5;r++)for(let c=0;c<6;c++){const x=55+c*120+(r%2?60:0),y=35+r*90;html+=tile(p,colors[(r+c)%4],`translate(${x} ${y})`)}
+        }
+        grid.innerHTML=html;
+      }
+
+      function labels(stage){
+        const name={triangle:'三角形',square:'四角形',hexagon:'六角形'}[shape];
+        const method=shape==='triangle'?'180度回転で組を作ります':shape==='square'?'向かい合う辺の形をそろえます':'向かい合う辺の関係を保ちます';
+        return [
+          [`もとの${name}`,'まずは形を一つ用意します',`① もとの${name}を観察します。`],
+          ['辺を少し変形','へこみと出っ張りを作ります','② 辺を少し動かして、単純な形に変えます。'],
+          ['同じ形を組み合わせる',method,`③ ${method}`],
+          ['平行移動でくり返す','すき間なく画面全体へ広げます','④ 同じ組を上下左右へずらします。'],
+          ['テッセレーション芸術の完成','色の規則を加えると作品になります','⑤ すき間のない、色の規則をもつ作品が完成しました。']
+        ][stage];
+      }
+      function updateLabels(stage){if(stage===lastStage)return;lastStage=stage;const l=labels(stage);mainLabel.textContent=l[0];subLabel.textContent=l[1];status.textContent=l[2]}
+      function draw(elapsed){
+        const t=elapsed%total,deform=ease(clamp((t-1500)/2800)),pair=ease(clamp((t-4700)/1800)),spread=ease(clamp((t-7000)/2700));
+        drawFocus(deform,pair);focus.setAttribute('opacity',String(1-spread));grid.setAttribute('opacity',String(spread));
+        mainLabel.setAttribute('opacity',String(spread>.84?0:1));subLabel.setAttribute('opacity',String(spread>.84?0:1));progressBar.style.width=`${t/total*100}%`;
+        let stage=0;if(t>=1500)stage=1;if(t>=4700)stage=2;if(t>=7000)stage=3;if(t>=9700)stage=4;updateLabels(stage);
+      }
+      function frame(now){if(playing){const elapsed=now-startTime;pausedAt=elapsed;draw(elapsed);requestAnimationFrame(frame)}}
+      function restart(){startTime=performance.now();pausedAt=0;lastStage=-1;buildGrid();draw(0);if(!playing){playing=true;playButton.textContent='一時停止';requestAnimationFrame(frame)}}
+      tabButtons.forEach(button=>button.addEventListener('click',()=>{shape=button.dataset.shape;tabButtons.forEach(b=>b.setAttribute('aria-pressed',String(b===button)));restart()}));
+      playButton.addEventListener('click',()=>{playing=!playing;if(playing){startTime=performance.now()-pausedAt;playButton.textContent='一時停止';requestAnimationFrame(frame)}else playButton.textContent='再生'});
+      restartButton.addEventListener('click',restart);
+      buildGrid();
+      if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){playing=false;pausedAt=10000;draw(pausedAt);playButton.textContent='再生'}else requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
