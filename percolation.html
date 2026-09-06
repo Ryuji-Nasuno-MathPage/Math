@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174f32">
+  <meta name="description" content="森林の密度や風向きを変え、火災の広がりと森の再生を観察するパーコレーション教材です。">
+  <title>森林火災パーコレーション｜数学の遊び場</title>
+  <style>
+    :root {
+      --forest: #176b3a;
+      --forest-dark: #0d4326;
+      --grass: #c9df7b;
+      --fire: #ef5b2a;
+      --ash: #716e69;
+      --cream: #fffdf4;
+      --ink: #20332a;
+      --muted: #63736a;
+      --line: #d9e3dc;
+      --panel: rgba(255, 255, 255, .94);
+      --shadow: 0 15px 36px rgba(27, 70, 47, .13);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: #edf6ef; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 7% 8%, rgba(255, 216, 94, .28), transparent 25%),
+        radial-gradient(circle at 92% 10%, rgba(75, 168, 112, .22), transparent 28%),
+        linear-gradient(145deg, #f8fbf6, #eef7f0 55%, #fff8ea);
+    }
+    button, input, select { font: inherit; }
+    button { touch-action: manipulation; }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+      outline: 4px solid #ffd85e;
+      outline-offset: 3px;
+    }
+
+    .page { width: min(1220px, calc(100% - 26px)); margin: 0 auto; padding: 22px 0 38px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(24px, 4vw, 40px);
+      color: #fff;
+      border-radius: 28px;
+      background: linear-gradient(135deg, #0c3f25, #197242 62%, #278856);
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -30px;
+      bottom: -54px;
+      width: 250px;
+      height: 250px;
+      border: 30px solid rgba(255,255,255,.08);
+      border-radius: 50%;
+    }
+    .eyebrow { margin: 0 0 8px; color: #d5f4df; font-size: .88rem; font-weight: 900; letter-spacing: .13em; }
+    h1 { position: relative; z-index: 1; margin: 0; font-size: clamp(2rem, 5.5vw, 3.8rem); line-height: 1.15; }
+    .lead { position: relative; z-index: 1; max-width: 800px; margin: 13px 0 0; color: #e0f3e6; font-size: clamp(1rem, 2.2vw, 1.17rem); font-weight: 700; line-height: 1.7; }
+
+    .cycle {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 18px 0;
+      padding: 13px 15px;
+      border: 1px solid rgba(23, 107, 58, .15);
+      border-radius: 18px;
+      background: rgba(255,255,255,.84);
+      box-shadow: 0 7px 20px rgba(27,70,47,.07);
+      font-weight: 900;
+    }
+    .cycle-state { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+    .dot { width: 17px; height: 17px; border: 2px solid rgba(0,0,0,.16); border-radius: 5px; }
+    .dot.grass { background: var(--grass); }
+    .dot.tree { background: var(--forest); }
+    .dot.fire { background: var(--fire); }
+    .dot.ash { background: var(--ash); }
+    .cycle-arrow { color: #829086; font-size: 1.2rem; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+    .card { border: 1px solid rgba(37, 89, 57, .17); border-radius: 24px; background: var(--panel); box-shadow: var(--shadow); }
+    .simulation { overflow: hidden; padding: 17px; }
+    .sim-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 12px; }
+    .sim-head h2 { margin: 0; font-size: clamp(1.25rem, 3vw, 1.8rem); }
+    .sim-head p { margin: 5px 0 0; color: var(--muted); font-weight: 650; line-height: 1.5; }
+    .wind-badge { flex: 0 0 auto; padding: 8px 11px; border-radius: 999px; color: #174f32; background: #e4f4e8; font-size: .88rem; font-weight: 900; }
+
+    .canvas-wrap { position: relative; overflow: hidden; border: 3px solid #234d37; border-radius: 17px; background: #d5e6a0; }
+    #forestCanvas { display: block; width: 100%; height: auto; aspect-ratio: 8 / 5; cursor: crosshair; touch-action: none; }
+    .edge-label {
+      position: absolute;
+      top: 9px;
+      padding: 5px 8px;
+      color: #fff;
+      border-radius: 8px;
+      background: rgba(17, 48, 31, .72);
+      font-size: .76rem;
+      font-weight: 900;
+      pointer-events: none;
+    }
+    .edge-label.left { left: 9px; }
+    .edge-label.right { right: 9px; }
+
+    .result {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 62px;
+      margin-top: 12px;
+      padding: 12px 15px;
+      border-radius: 15px;
+      background: #eef4f0;
+      font-weight: 850;
+      line-height: 1.5;
+    }
+    .result-icon { font-size: 1.65rem; }
+    .result.running { color: #7a3d00; background: #fff1d7; }
+    .result.success { color: #075d31; background: #dff6e7; }
+    .result.stopped { color: #654c19; background: #f5edd7; }
+
+    .transport { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin-top: 12px; }
+    .transport button, .preset, .wide-button {
+      min-height: 47px;
+      border: 0;
+      border-radius: 13px;
+      color: var(--ink);
+      background: #e9eeeb;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .transport button:hover, .preset:hover, .wide-button:hover { filter: brightness(.97); transform: translateY(-1px); }
+    .transport .primary { color: #fff; background: var(--forest); }
+    .transport .ignite { color: #fff; background: #d84b22; }
+
+    .side { display: grid; gap: 14px; }
+    .control-card { padding: 17px; }
+    .control-card h3 { margin: 0 0 13px; font-size: 1.08rem; }
+    .control { margin-top: 14px; }
+    .control:first-of-type { margin-top: 0; }
+    .control-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; font-size: .92rem; font-weight: 850; }
+    .value { color: var(--forest); font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; accent-color: var(--forest); cursor: pointer; }
+    select { width: 100%; min-height: 44px; padding: 7px 9px; color: var(--ink); border: 2px solid #d8e2db; border-radius: 11px; background: #fff; font-weight: 800; }
+    .presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 9px; }
+    .preset { min-height: 52px; padding: 5px; font-size: .77rem; }
+    .preset strong { display: block; font-size: .96rem; }
+    .wide-button { width: 100%; margin-top: 9px; }
+
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat { padding: 11px; border-radius: 13px; background: #f1f5f2; }
+    .stat span { display: block; color: var(--muted); font-size: .75rem; font-weight: 800; }
+    .stat strong { display: block; margin-top: 3px; color: var(--forest-dark); font-size: 1.23rem; font-variant-numeric: tabular-nums; }
+    .chart-wrap { margin-top: 12px; padding: 8px; border: 1px solid var(--line); border-radius: 13px; background: #fff; }
+    #chartCanvas { display: block; width: 100%; height: 108px; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 7px 12px; margin-top: 5px; color: var(--muted); font-size: .72rem; font-weight: 800; }
+    .legend-line { display: inline-block; width: 15px; height: 4px; margin-right: 4px; vertical-align: middle; border-radius: 3px; }
+
+    .note-card { margin-top: 18px; padding: clamp(18px, 3vw, 27px); }
+    .note-card h2 { margin: 0 0 8px; font-size: 1.3rem; }
+    .note-card p { margin: 0; color: var(--muted); line-height: 1.75; font-weight: 650; }
+    .questions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+    .question { padding: 13px; border-radius: 13px; background: #f3f7f4; line-height: 1.55; font-weight: 750; }
+    .home-link { display: inline-block; margin-top: 20px; color: #175b35; font-weight: 900; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+    @media (max-width: 940px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { grid-template-columns: repeat(2, 1fr); }
+      .side .control-card:last-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 620px) {
+      .page { width: min(100% - 16px, 600px); padding-top: 8px; }
+      .hero, .card { border-radius: 19px; }
+      .cycle { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; }
+      .layout { gap: 11px; }
+      .simulation { padding: 10px; }
+      .sim-head { display: block; }
+      .wind-badge { display: inline-block; margin-top: 8px; }
+      .transport { grid-template-columns: repeat(2, 1fr); }
+      .side { grid-template-columns: 1fr; }
+      .side .control-card:last-child { grid-column: auto; }
+      .questions { grid-template-columns: 1fr; }
+      .edge-label { font-size: .65rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">PERCOLATION LAB 01</p>
+      <h1>森林火災パーコレーション</h1>
+      <p class="lead">森の密度や風を変えると、火の広がり方はどう変わる？ 条件を動かし、境目で起きる急な変化を観察しよう。</p>
+    </header>
+
+    <div class="cycle" aria-label="森の状態の循環">
+      <span class="cycle-state"><span class="dot grass"></span>草原</span><span class="cycle-arrow">→</span>
+      <span class="cycle-state"><span class="dot tree"></span>森</span><span class="cycle-arrow">→</span>
+      <span class="cycle-state"><span class="dot fire"></span>火災</span><span class="cycle-arrow">→</span>
+      <span class="cycle-state"><span class="dot ash"></span>焼け跡</span><span class="cycle-arrow">→</span>
+      <span class="cycle-state"><span class="dot grass"></span>草原</span>
+    </div>
+
+    <section class="layout">
+      <article class="card simulation">
+        <div class="sim-head">
+          <div>
+            <h2>森をタップして着火</h2>
+            <p>草原をタップすると木を植えられます。まずは「左端から着火」で、右端まで届くか試そう。</p>
+          </div>
+          <span class="wind-badge" id="windBadge">無風</span>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="forestCanvas" aria-label="森林火災シミュレーションのマス目"></canvas>
+          <span class="edge-label left">出発</span>
+          <span class="edge-label right">到達</span>
+        </div>
+
+        <div class="result" id="result" role="status" aria-live="polite">
+          <span class="result-icon">🌲</span><span>条件を決めて、左端から着火してみよう。</span>
+        </div>
+
+        <div class="transport">
+          <button class="primary" id="playButton" type="button">▶ 再生</button>
+          <button id="stepButton" type="button">1段階進む</button>
+          <button class="ignite" id="igniteButton" type="button">🔥 左端から着火</button>
+          <button id="resetButton" type="button">森を作り直す</button>
+        </div>
+      </article>
+
+      <aside class="side">
+        <section class="card control-card">
+          <h3>最初の森</h3>
+          <div class="control">
+            <div class="control-row"><label for="density">森林密度</label><span class="value" id="densityValue">59%</span></div>
+            <input id="density" type="range" min="20" max="90" value="59" step="1">
+          </div>
+          <div class="presets" aria-label="森林密度のプリセット">
+            <button class="preset" type="button" data-density="45"><strong>45%</strong>疎ら</button>
+            <button class="preset" type="button" data-density="59"><strong>59%</strong>境目付近</button>
+            <button class="preset" type="button" data-density="75"><strong>75%</strong>密集</button>
+          </div>
+          <button class="wide-button" id="grassButton" type="button">すべて草原にする</button>
+        </section>
+
+        <section class="card control-card">
+          <h3>火と森の変化</h3>
+          <div class="control">
+            <div class="control-row"><label for="spread">基本の延焼率</label><span class="value" id="spreadValue">100%</span></div>
+            <input id="spread" type="range" min="10" max="100" value="100" step="1">
+          </div>
+          <div class="control">
+            <div class="control-row"><label for="regrowth">草原から森へ</label><span class="value" id="regrowthValue">0.3%</span></div>
+            <input id="regrowth" type="range" min="0" max="50" value="3" step="1">
+          </div>
+          <div class="control">
+            <div class="control-row"><label for="lightning">自然発火</label><span class="value" id="lightningValue">なし</span></div>
+            <input id="lightning" type="range" min="0" max="20" value="0" step="1">
+          </div>
+          <div class="control">
+            <div class="control-row"><label for="speed">速さ</label><span class="value" id="speedValue">8段階/秒</span></div>
+            <input id="speed" type="range" min="1" max="20" value="8" step="1">
+          </div>
+        </section>
+
+        <section class="card control-card">
+          <h3>風</h3>
+          <div class="control">
+            <label class="control-row" for="wind"><span>風向き</span></label>
+            <select id="wind">
+              <option value="none">無風</option>
+              <option value="east">西風 → 東へ</option>
+              <option value="west">東風 → 西へ</option>
+              <option value="south">北風 → 南へ</option>
+              <option value="north">南風 → 北へ</option>
+            </select>
+          </div>
+          <div class="control">
+            <div class="control-row"><label for="windStrength">風の強さ</label><span class="value" id="windStrengthValue">60%</span></div>
+            <input id="windStrength" type="range" min="0" max="100" value="60" step="5">
+          </div>
+        </section>
+
+        <section class="card control-card">
+          <h3>現在のようす</h3>
+          <div class="stats">
+            <div class="stat"><span>経過</span><strong id="stepStat">0段階</strong></div>
+            <div class="stat"><span>森</span><strong id="forestStat">0%</strong></div>
+            <div class="stat"><span>燃焼中</span><strong id="fireStat">0</strong></div>
+            <div class="stat"><span>累計焼失</span><strong id="burnedStat">0</strong></div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chartCanvas" aria-label="森と火災の割合の変化を示すグラフ"></canvas>
+            <div class="chart-legend">
+              <span><i class="legend-line" style="background:#176b3a"></i>森</span>
+              <span><i class="legend-line" style="background:#ef5b2a"></i>火災</span>
+              <span><i class="legend-line" style="background:#9db84f"></i>草原</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="card note-card">
+      <h2>観察してみよう</h2>
+      <p>同じ森林密度でも、森の配置は毎回ランダムです。一度だけで決めず、同じ条件を何度か試して比べてみましょう。</p>
+      <div class="questions">
+        <div class="question">森林密度を少しずつ上げると、どのあたりから右端まで届きやすくなる？</div>
+        <div class="question">森林密度が同じでも、到達する場合としない場合があるのはなぜ？</div>
+        <div class="question">風向きと発火地点を変えると、燃え広がる形はどう変化する？</div>
+      </div>
+    </section>
+
+    <a class="home-link" href="index.html">← 数学の遊び場へ戻る</a>
+  </main>
+
+  <script>
+    "use strict";
+
+    const GRASS = 0;
+    const TREE = 1;
+    const FIRE = 2;
+    const ASH = 3;
+    const ROWS = 30;
+    const COLS = 48;
+    const CELL = 18;
+    const MAX_HISTORY = 180;
+    const COLORS = {
+      grass: [201, 223, 123],
+      tree: [23, 107, 58],
+      fire: [239, 91, 42],
+      ash: [113, 110, 105]
+    };
+
+    const canvas = document.getElementById("forestCanvas");
+    const ctx = canvas.getContext("2d");
+    const chart = document.getElementById("chartCanvas");
+    const chartCtx = chart.getContext("2d");
+    const result = document.getElementById("result");
+    const playButton = document.getElementById("playButton");
+
+    let grid = new Uint8Array(ROWS * COLS);
+    let running = false;
+    let timer = null;
+    let stepCount = 0;
+    let burnedTotal = 0;
+    let reachedRight = false;
+    let leftEdgeExperiment = false;
+    let previousFireCount = 0;
+    let history = [];
+
+    const indexOf = (row, col) => row * COLS + col;
+    const inBounds = (row, col) => row >= 0 && row < ROWS && col >= 0 && col < COLS;
+    const parameter = id => Number(document.getElementById(id).value);
+
+    function setupCanvases() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = COLS * CELL * dpr;
+      canvas.height = ROWS * CELL * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const rect = chart.getBoundingClientRect();
+      const width = Math.max(250, Math.round(rect.width));
+      chart.width = width * dpr;
+      chart.height = 108 * dpr;
+      chartCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawAll();
+    }
+
+    function resetExperiment(message = "新しい森を作りました。左端から着火してみよう。") {
+      pause();
+      const density = parameter("density") / 100;
+      grid = new Uint8Array(ROWS * COLS);
+      for (let i = 0; i < grid.length; i++) grid[i] = Math.random() < density ? TREE : GRASS;
+      stepCount = 0;
+      burnedTotal = 0;
+      reachedRight = false;
+      leftEdgeExperiment = false;
+      previousFireCount = 0;
+      history = [];
+      updateStatus("", "🌲", message);
+      recordHistory();
+      drawAll();
+    }
+
+    function allGrass() {
+      pause();
+      grid.fill(GRASS);
+      stepCount = 0;
+      burnedTotal = 0;
+      reachedRight = false;
+      leftEdgeExperiment = false;
+      previousFireCount = 0;
+      history = [];
+      updateStatus("", "🌱", "草原にしました。タップして木を植えられます。再生のようすを見るなら再生を押そう。");
+      recordHistory();
+      drawAll();
+    }
+
+    function igniteLeftEdge() {
+      pause();
+      let ignited = 0;
+      for (let row = 0; row < ROWS; row++) {
+        const i = indexOf(row, 0);
+        if (grid[i] === TREE) {
+          grid[i] = FIRE;
+          ignited++;
+        }
+      }
+      if (!ignited) {
+        for (let col = 1; col < Math.min(6, COLS) && !ignited; col++) {
+          for (let row = 0; row < ROWS; row++) {
+            const i = indexOf(row, col);
+            if (grid[i] === TREE) {
+              grid[i] = FIRE;
+              ignited++;
+            }
+          }
+        }
+      }
+      if (!ignited) {
+        updateStatus("stopped", "🌱", "左側に森がありません。森を作り直すか、草原をタップして木を植えよう。");
+        return;
+      }
+      leftEdgeExperiment = true;
+      reachedRight = false;
+      previousFireCount = ignited;
+      burnedTotal += ignited;
+      updateStatus("running", "🔥", `${ignited}か所から着火しました。右端まで届くかな？`);
+      recordHistory();
+      drawAll();
+      play();
+    }
+
+    function windVector() {
+      const wind = document.getElementById("wind").value;
+      return {
+        east: [0, 1], west: [0, -1], south: [1, 0], north: [-1, 0], none: [0, 0]
+      }[wind];
+    }
+
+    function spreadChance(dr, dc) {
+      const base = parameter("spread") / 100;
+      const strength = parameter("windStrength") / 100;
+      const [wr, wc] = windVector();
+      if (wr === 0 && wc === 0) return base;
+      const dot = dr * wr + dc * wc;
+      if (dot > 0) return Math.min(.99, base * (1 + 1.35 * strength));
+      if (dot < 0) return Math.max(.01, base * (1 - .82 * strength));
+      return Math.max(.01, base * (1 - .22 * strength));
+    }
+
+    function simulationStep() {
+      const next = grid.slice();
+      const directions = [[-1,0],[1,0],[0,-1],[0,1]];
+      const regrowth = parameter("regrowth") / 1000;
+      const lightning = parameter("lightning") / 100000;
+      const ignitions = new Set();
+      let hadFire = false;
+
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const i = indexOf(row, col);
+          const state = grid[i];
+          if (state === FIRE) {
+            hadFire = true;
+            next[i] = ASH;
+            for (const [dr, dc] of directions) {
+              const nr = row + dr;
+              const nc = col + dc;
+              if (!inBounds(nr, nc)) continue;
+              const ni = indexOf(nr, nc);
+              if (grid[ni] === TREE && Math.random() < spreadChance(dr, dc)) ignitions.add(ni);
+            }
+          } else if (state === ASH) {
+            next[i] = GRASS;
+          } else if (state === GRASS && Math.random() < regrowth) {
+            next[i] = TREE;
+          } else if (state === TREE && lightning > 0 && Math.random() < lightning) {
+            ignitions.add(i);
+          }
+        }
+      }
+
+      ignitions.forEach(i => {
+        next[i] = FIRE;
+        burnedTotal++;
+        if (i % COLS === COLS - 1) reachedRight = true;
+      });
+
+      grid = next;
+      stepCount++;
+      const currentFireCount = countStates()[FIRE];
+
+      if (reachedRight && leftEdgeExperiment) {
+        updateStatus("success", "🎉", `右端まで到達！ 森林密度${parameter("density")}%で、火の通り道がつながりました。`);
+      } else if (leftEdgeExperiment && previousFireCount > 0 && currentFireCount === 0 && !reachedRight) {
+        updateStatus("stopped", "🧯", "火は途中で消えました。森の配置や密度を変えて、もう一度試してみよう。");
+        if (parameter("lightning") === 0 && parameter("regrowth") === 0) pause();
+      } else if (currentFireCount > 0 || ignitions.size > 0 || hadFire) {
+        updateStatus("running", "🔥", `延焼中です。現在${currentFireCount}か所が燃えています。`);
+      } else if (!leftEdgeExperiment) {
+        updateStatus("", "🌲", "森は静かです。地図をタップするか、左端から着火しよう。");
+      }
+
+      previousFireCount = currentFireCount;
+      recordHistory();
+      drawAll();
+    }
+
+    function countStates() {
+      const counts = [0, 0, 0, 0];
+      for (const state of grid) counts[state]++;
+      return counts;
+    }
+
+    function cellColor(state, row, col) {
+      const variation = ((row * 17 + col * 31) % 9) - 4;
+      const base = state === TREE ? COLORS.tree : state === FIRE ? COLORS.fire : state === ASH ? COLORS.ash : COLORS.grass;
+      return `rgb(${base.map(value => Math.max(0, Math.min(255, value + variation))).join(",")})`;
+    }
+
+    function drawForest() {
+      ctx.clearRect(0, 0, COLS * CELL, ROWS * CELL);
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const state = grid[indexOf(row, col)];
+          const x = col * CELL;
+          const y = row * CELL;
+          ctx.fillStyle = cellColor(state, row, col);
+          ctx.fillRect(x, y, CELL, CELL);
+          ctx.strokeStyle = "rgba(24, 58, 37, .13)";
+          ctx.strokeRect(x + .5, y + .5, CELL - 1, CELL - 1);
+          if (state === TREE) {
+            ctx.fillStyle = "rgba(8, 57, 29, .36)";
+            ctx.beginPath();
+            ctx.arc(x + CELL / 2, y + CELL / 2, 3.1, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (state === FIRE) {
+            ctx.fillStyle = "#ffe66f";
+            ctx.beginPath();
+            ctx.arc(x + CELL / 2, y + CELL / 2, 4.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      if (leftEdgeExperiment) {
+        ctx.fillStyle = "rgba(255, 216, 94, .8)";
+        ctx.fillRect(0, 0, 3, ROWS * CELL);
+        if (reachedRight) ctx.fillRect(COLS * CELL - 4, 0, 4, ROWS * CELL);
+      }
+    }
+
+    function recordHistory() {
+      const counts = countStates();
+      const total = grid.length;
+      history.push({ tree: counts[TREE] / total, fire: counts[FIRE] / total, grass: counts[GRASS] / total });
+      if (history.length > MAX_HISTORY) history.shift();
+    }
+
+    function drawChart() {
+      const rect = chart.getBoundingClientRect();
+      const width = Math.max(250, rect.width);
+      const height = 108;
+      chartCtx.clearRect(0, 0, width, height);
+      chartCtx.fillStyle = "#fff";
+      chartCtx.fillRect(0, 0, width, height);
+      chartCtx.strokeStyle = "#e4e9e5";
+      chartCtx.lineWidth = 1;
+      [0.25, 0.5, 0.75].forEach(level => {
+        chartCtx.beginPath();
+        chartCtx.moveTo(0, height * (1 - level));
+        chartCtx.lineTo(width, height * (1 - level));
+        chartCtx.stroke();
+      });
+      const series = [["tree", "#176b3a"], ["fire", "#ef5b2a"], ["grass", "#9db84f"]];
+      series.forEach(([key, color]) => {
+        chartCtx.strokeStyle = color;
+        chartCtx.lineWidth = key === "fire" ? 2.5 : 2;
+        chartCtx.beginPath();
+        history.forEach((point, i) => {
+          const x = history.length <= 1 ? 0 : i / (MAX_HISTORY - 1) * width;
+          const y = height - point[key] * height;
+          if (i === 0) chartCtx.moveTo(x, y); else chartCtx.lineTo(x, y);
+        });
+        chartCtx.stroke();
+      });
+    }
+
+    function updateStats() {
+      const counts = countStates();
+      document.getElementById("stepStat").textContent = `${stepCount}段階`;
+      document.getElementById("forestStat").textContent = `${Math.round(counts[TREE] / grid.length * 100)}%`;
+      document.getElementById("fireStat").textContent = counts[FIRE].toLocaleString("ja-JP");
+      document.getElementById("burnedStat").textContent = burnedTotal.toLocaleString("ja-JP");
+    }
+
+    function drawAll() {
+      drawForest();
+      drawChart();
+      updateStats();
+    }
+
+    function updateStatus(kind, icon, message) {
+      result.className = `result${kind ? ` ${kind}` : ""}`;
+      result.innerHTML = `<span class="result-icon">${icon}</span><span>${message}</span>`;
+    }
+
+    function play() {
+      if (running) return;
+      running = true;
+      playButton.textContent = "⏸ 一時停止";
+      schedule();
+    }
+
+    function pause() {
+      running = false;
+      if (timer !== null) window.clearTimeout(timer);
+      timer = null;
+      playButton.textContent = "▶ 再生";
+    }
+
+    function schedule() {
+      if (!running) return;
+      const delay = 1000 / parameter("speed");
+      timer = window.setTimeout(() => {
+        simulationStep();
+        schedule();
+      }, delay);
+    }
+
+    function handleCanvas(event) {
+      const rect = canvas.getBoundingClientRect();
+      const col = Math.floor((event.clientX - rect.left) / rect.width * COLS);
+      const row = Math.floor((event.clientY - rect.top) / rect.height * ROWS);
+      if (!inBounds(row, col)) return;
+      const i = indexOf(row, col);
+      if (grid[i] === TREE) {
+        grid[i] = FIRE;
+        burnedTotal++;
+        leftEdgeExperiment = false;
+        updateStatus("running", "🔥", "タップした場所から着火しました。広がり方を観察しよう。");
+      } else if (grid[i] === GRASS || grid[i] === ASH) {
+        grid[i] = TREE;
+        updateStatus("", "🌱", "木を1本植えました。続けてタップできます。");
+      } else {
+        grid[i] = GRASS;
+        updateStatus("", "🌱", "その場所を草原に戻しました。防火帯を作ることもできます。");
+      }
+      previousFireCount = countStates()[FIRE];
+      recordHistory();
+      drawAll();
+    }
+
+    function syncLabels() {
+      document.getElementById("densityValue").textContent = `${parameter("density")}%`;
+      document.getElementById("spreadValue").textContent = `${parameter("spread")}%`;
+      document.getElementById("regrowthValue").textContent = `${(parameter("regrowth") / 10).toFixed(1)}%`;
+      document.getElementById("lightningValue").textContent = parameter("lightning") === 0 ? "なし" : `${parameter("lightning")}/10万`;
+      document.getElementById("speedValue").textContent = `${parameter("speed")}段階/秒`;
+      document.getElementById("windStrengthValue").textContent = `${parameter("windStrength")}%`;
+      const windText = document.getElementById("wind").selectedOptions[0].textContent;
+      document.getElementById("windBadge").textContent = windText;
+    }
+
+    canvas.addEventListener("pointerdown", handleCanvas);
+    playButton.addEventListener("click", () => running ? pause() : play());
+    document.getElementById("stepButton").addEventListener("click", () => { pause(); simulationStep(); });
+    document.getElementById("igniteButton").addEventListener("click", igniteLeftEdge);
+    document.getElementById("resetButton").addEventListener("click", () => resetExperiment());
+    document.getElementById("grassButton").addEventListener("click", allGrass);
+
+    document.querySelectorAll("input[type=range], select").forEach(control => control.addEventListener("input", () => {
+      syncLabels();
+      if (control.id === "speed" && running) {
+        pause();
+        play();
+      }
+    }));
+    document.getElementById("density").addEventListener("change", () => resetExperiment(`森林密度${parameter("density")}%の森を作りました。`));
+    document.querySelectorAll(".preset").forEach(button => button.addEventListener("click", () => {
+      document.getElementById("density").value = button.dataset.density;
+      syncLabels();
+      resetExperiment(`森林密度${button.dataset.density}%の森を作りました。何度か試して比べよう。`);
+    }));
+    document.getElementById("wind").addEventListener("change", () => {
+      syncLabels();
+      updateStatus("", "💨", `${document.getElementById("wind").selectedOptions[0].textContent}に変更しました。`);
+    });
+    window.addEventListener("resize", setupCanvases);
+
+    syncLabels();
+    setupCanvases();
+    resetExperiment("森林密度59%の森です。まずは左端から着火してみよう。");
+  </script>
+</body>
+</html>

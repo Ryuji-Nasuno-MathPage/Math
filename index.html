@@ -18,6 +18,7 @@
       --teal: #42b9a8;
       --coral: #ff806b;
       --purple: #7765d8;
+      --forest: #2f8b57;
     }
 
     * { box-sizing: border-box; }
@@ -105,6 +106,15 @@
     .game.tessellation { --accent: var(--teal); }
     .game.cube { --accent: var(--blue); }
     .game.four-color { --accent: var(--purple); }
+    .game.percolation {
+      --accent: var(--forest);
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(260px, 38%) 1fr;
+      min-height: 260px;
+    }
+    .game.percolation .visual { height: 100%; min-height: 260px; }
+    .game.percolation .visual svg { width: 190px; height: 142px; }
 
     .visual {
       position: relative;
@@ -151,6 +161,9 @@
       .hero, .main { width: min(100% - 22px, 520px); }
       .section-head { align-items: flex-start; flex-direction: column; gap: 6px; }
       .games { grid-template-columns: 1fr; }
+      .game.percolation { grid-column: auto; display: flex; min-height: 315px; }
+      .game.percolation .visual { height: 150px; min-height: 150px; }
+      .game.percolation .visual svg { width: 128px; height: 112px; }
       .game { min-height: 315px; border-radius: 20px; }
       .visual { height: 150px; }
     }
@@ -246,6 +259,35 @@
           <h3>4色定理チャレンジ</h3>
           <p>となり合う地域が同じ色にならないように、地図を4色だけで塗り分けよう。</p>
           <span class="go">地図を塗る <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <a class="game percolation" href="percolation.html">
+        <div class="visual" aria-hidden="true">
+          <span class="new">NEW</span>
+          <svg viewBox="0 0 180 130">
+            <g stroke="rgba(17,74,41,.22)" stroke-width="1">
+              <path d="M12 15h28v25H12z" fill="#2f8b57"/><path d="M40 15h28v25H40z" fill="#2f8b57"/>
+              <path d="M68 15h28v25H68z" fill="#c9df7b"/><path d="M96 15h28v25H96z" fill="#2f8b57"/>
+              <path d="M124 15h28v25h-28z" fill="#c9df7b"/><path d="M152 15h16v25h-16z" fill="#2f8b57"/>
+              <path d="M12 40h28v25H12z" fill="#2f8b57"/><path d="M40 40h28v25H40z" fill="#ef5b2a"/>
+              <path d="M68 40h28v25H68z" fill="#ffb23f"/><path d="M96 40h28v25H96z" fill="#2f8b57"/>
+              <path d="M124 40h28v25h-28z" fill="#2f8b57"/><path d="M152 40h16v25h-16z" fill="#c9df7b"/>
+              <path d="M12 65h28v25H12z" fill="#c9df7b"/><path d="M40 65h28v25H40z" fill="#716e69"/>
+              <path d="M68 65h28v25H68z" fill="#ef5b2a"/><path d="M96 65h28v25H96z" fill="#ffb23f"/>
+              <path d="M124 65h28v25h-28z" fill="#2f8b57"/><path d="M152 65h16v25h-16z" fill="#2f8b57"/>
+              <path d="M12 90h28v25H12z" fill="#2f8b57"/><path d="M40 90h28v25H40z" fill="#c9df7b"/>
+              <path d="M68 90h28v25H68z" fill="#716e69"/><path d="M96 90h28v25H96z" fill="#ef5b2a"/>
+              <path d="M124 90h28v25h-28z" fill="#ffb23f"/><path d="M152 90h16v25h-16z" fill="#2f8b57"/>
+            </g>
+            <path d="M24 8c24 5 43 17 59 34s32 35 72 52" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 6" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <span class="game-no">SIMULATION 05</span>
+          <h3>森林火災パーコレーション</h3>
+          <p>森の密度や風向きを変えて、火災がどこまで燃え広がるか観察しよう。約59％付近で起こる変化も探せます。</p>
+          <span class="go">森を観察する <span class="arrow">→</span></span>
         </div>
       </a>
     </div>
