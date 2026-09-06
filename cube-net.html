@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2868d8">
+  <meta name="description" content="正方形を6枚並べて、立方体の展開図を楽しく調べる中学生向けWeb教材です。">
+  <title>立方体の展開図に挑戦！</title>
+  <style>
+    :root {
+      --ink: #173153;
+      --muted: #5e718b;
+      --blue: #2868d8;
+      --blue-dark: #164da8;
+      --blue-pale: #eaf3ff;
+      --teal: #0a9a8a;
+      --yellow: #ffd65a;
+      --red: #d94b62;
+      --paper: #ffffff;
+      --line: #cbd9e9;
+      --cell: clamp(35px, calc((92vw - 54px) / 8), 54px);
+      --shadow: 0 16px 42px rgba(40, 76, 130, .13);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: #edf6ff; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 12% 7%, rgba(255, 214, 90, .30) 0 92px, transparent 93px),
+        radial-gradient(circle at 93% 18%, rgba(75, 198, 184, .18) 0 150px, transparent 151px),
+        linear-gradient(180deg, #edf6ff 0%, #f8fbff 52%, #eef8f5 100%);
+    }
+
+    button { font: inherit; }
+    button:focus-visible { outline: 4px solid rgba(255, 190, 44, .75); outline-offset: 3px; }
+
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 34px;
+    }
+
+    .hero {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .hero-icon {
+      flex: 0 0 auto;
+      width: 66px;
+      height: 66px;
+      filter: drop-shadow(0 8px 10px rgba(38, 92, 164, .16));
+    }
+
+    h1 { margin: 0; font-size: clamp(1.65rem, 4vw, 2.65rem); line-height: 1.18; letter-spacing: .02em; }
+    .subtitle { margin: 7px 0 0; font-size: clamp(1rem, 2vw, 1.18rem); font-weight: 700; color: var(--muted); }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(131, 163, 201, .35);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .82);
+      box-shadow: 0 8px 22px rgba(40, 76, 130, .08);
+      backdrop-filter: blur(8px);
+    }
+
+    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .mode-btn {
+      min-height: 48px;
+      padding: 9px 18px;
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .mode-btn[aria-selected="true"] { color: #fff; background: var(--blue); box-shadow: 0 6px 14px rgba(40, 104, 216, .25); }
+
+    .counter {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 8px 15px;
+      border-radius: 999px;
+      background: var(--blue-pale);
+      color: var(--blue-dark);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .counter strong { font-size: 1.5rem; }
+
+    .workspace { display: grid; grid-template-columns: minmax(480px, 1.08fr) minmax(360px, .92fr); gap: 18px; align-items: stretch; }
+    .card { border: 1px solid rgba(131, 163, 201, .32); border-radius: 26px; background: rgba(255,255,255,.94); box-shadow: var(--shadow); }
+
+    .board-card { padding: clamp(16px, 3vw, 25px); }
+    .step-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .step-title { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 1.12rem; }
+    .step-no { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: #fff; background: var(--teal); font-weight: 900; }
+    .placement-count { color: var(--muted); font-weight: 800; }
+    .placement-count strong { color: var(--blue); font-size: 1.35rem; }
+
+    .board-wrap {
+      display: grid;
+      place-items: center;
+      min-height: calc(var(--cell) * 8 + 30px);
+      padding: 14px;
+      border: 2px dashed #a6bdd8;
+      border-radius: 20px;
+      background-color: #f8fbff;
+      background-image:
+        linear-gradient(rgba(91, 139, 192, .08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(91, 139, 192, .08) 1px, transparent 1px);
+      background-size: 18px 18px;
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(8, var(--cell)); grid-template-rows: repeat(8, var(--cell)); gap: 3px; touch-action: manipulation; }
+    .cell {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.82);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .13s ease, border-color .13s ease, background .13s ease;
+    }
+    .cell:hover { border-color: #6e9dd7; background: #f0f7ff; transform: translateY(-1px); }
+    .cell.selected {
+      border: 2px solid #1f61c5;
+      background: linear-gradient(145deg, #71b6ff, #3d7fe0);
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,.46), 0 3px 8px rgba(33, 94, 180, .2);
+    }
+    .cell.selected::after { content: ""; position: absolute; inset: 8px; border: 1px dashed rgba(255,255,255,.76); border-radius: 3px; }
+    .cell.cannot-add { animation: bump .25s ease; }
+    @keyframes bump { 50% { transform: scale(.9); background: #ffe7eb; border-color: var(--red); } }
+
+    .board-tip { margin: 12px 0 0; text-align: center; color: var(--muted); font-size: .95rem; font-weight: 700; }
+    .actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 16px; }
+    .primary, .secondary, .small-btn {
+      border: 0;
+      border-radius: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+    }
+    .primary { min-height: 56px; padding: 13px 22px; color: #fff; background: linear-gradient(135deg, #ff765f, #ed4f67); box-shadow: 0 9px 18px rgba(218, 65, 90, .24); font-size: 1.14rem; }
+    .secondary { min-height: 56px; padding: 13px 20px; color: var(--blue-dark); background: var(--blue-pale); }
+    .primary:not(:disabled):hover, .secondary:hover, .small-btn:hover { transform: translateY(-2px); }
+    .primary:disabled { opacity: .38; cursor: not-allowed; box-shadow: none; }
+
+    .result-card { display: flex; flex-direction: column; min-height: 100%; overflow: hidden; }
+    .result-top { padding: 20px 22px 4px; }
+    .result-state { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 13px 16px; border-radius: 18px; background: #f3f7fc; }
+    .result-state.success { background: #e7f8f1; color: #087466; }
+    .result-state.fail { background: #fff0f2; color: #a92d44; }
+    .state-icon { display: grid; place-items: center; flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; background: #dce8f6; font-size: 1.42rem; }
+    .success .state-icon { background: #bcebdc; }
+    .fail .state-icon { background: #ffd2da; }
+    .state-copy strong { display: block; font-size: 1.18rem; }
+    .state-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: .92rem; font-weight: 700; }
+
+    .fold-view { position: relative; display: grid; place-items: center; min-height: 300px; margin: 8px 14px 0; overflow: hidden; border-radius: 20px; background: radial-gradient(circle, #ffffff 0%, #eef6ff 72%); perspective: 850px; }
+    .fold-view::after { content: ""; position: absolute; left: 16%; right: 16%; bottom: 34px; height: 22px; border-radius: 50%; background: rgba(34, 76, 125, .12); filter: blur(8px); }
+    .fold-prompt { position: relative; z-index: 2; max-width: 260px; text-align: center; color: var(--muted); font-weight: 800; line-height: 1.65; }
+    .fold-prompt svg { display: block; width: 86px; margin: 0 auto 14px; opacity: .65; }
+
+    .cube-scene { position: relative; z-index: 2; width: 84px; height: 84px; transform-style: preserve-3d; transform: rotateX(-8deg) rotateY(-10deg); transition: transform 1.15s cubic-bezier(.2,.72,.2,1); }
+    .fold-view.folding .cube-scene { transform: rotateX(-22deg) rotateY(34deg); animation: cube-breathe 4.5s 1.2s ease-in-out infinite alternate; }
+    @keyframes cube-breathe { to { transform: rotateX(-17deg) rotateY(49deg); } }
+    .fold-face, .ghost-face {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 84px;
+      height: 84px;
+      display: grid;
+      place-items: center;
+      border: 2px solid #1b4f98;
+      border-radius: 7px;
+      color: #123f7c;
+      background: var(--face, #70b6ff);
+      box-shadow: inset 0 0 0 4px rgba(255,255,255,.40);
+      backface-visibility: visible;
+      transform-style: preserve-3d;
+      transform: var(--net-transform);
+      transition: transform 1.15s cubic-bezier(.2,.72,.2,1), opacity .3s ease, background .3s ease;
+      font-weight: 900;
+    }
+    .fold-view.folding .fold-face { transform: var(--cube-transform); }
+    .fold-face.overlap { background: repeating-linear-gradient(135deg, rgba(244,82,105,.82) 0 10px, rgba(255,182,192,.88) 10px 20px); border-color: #ad2841; color: #7b1428; opacity: .76; }
+    .ghost-face { border: 3px dashed #d94b62; background: rgba(255,255,255,.12); color: #be314a; opacity: 0; transform: var(--cube-transform); }
+    .fold-view.folding .ghost-face { opacity: .75; }
+    .disconnected-preview { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(8, 24px); grid-template-rows: repeat(8, 24px); gap: 2px; transform: rotate(-2deg); }
+    .preview-cell { border-radius: 4px; background: #5599eb; border: 1px solid #205fae; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
+    .preview-cell.part-1 { background: #ff9b76; border-color: #ca6542; }
+    .preview-cell.part-2 { background: #5ac3b5; border-color: #22897c; }
+    .preview-cell.part-3 { background: #c287e9; border-color: #8250a4; }
+    .preview-note { position: absolute; z-index: 3; bottom: 18px; left: 18px; right: 18px; text-align: center; color: #a12b41; font-weight: 900; }
+
+    .replay { align-self: center; margin: 8px 0 15px; padding: 9px 15px; color: var(--blue-dark); background: transparent; border: 1px solid #a9c3e5; border-radius: 12px; font-weight: 800; cursor: pointer; }
+    .replay[hidden] { display: none; }
+
+    .complete-panel { margin: auto 14px 14px; padding: 15px; border-radius: 18px; background: #fff8df; border: 1px solid #f2d775; }
+    .complete-panel[hidden] { display: none; }
+    .complete-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .complete-head strong { font-size: 1.13rem; color: #795a00; }
+    .small-btn { min-height: 38px; padding: 7px 11px; color: #795a00; background: rgba(255,255,255,.65); border: 1px solid #e5c95e; font-size: .86rem; }
+    .discoveries { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; margin-top: 12px; }
+    .discovery { aspect-ratio: 1; display: grid; place-items: center; border: 2px dashed #d7bf65; border-radius: 10px; background: rgba(255,255,255,.42); color: #a88a25; font-weight: 900; }
+    .discovery.found { border-style: solid; border-color: #dea82a; background: #fff; }
+    .discovery svg { width: 92%; height: 92%; }
+
+    .help { margin-top: 16px; padding: 16px 20px; color: var(--muted); font-weight: 700; line-height: 1.65; }
+    .help strong { color: var(--ink); }
+
+    @media (max-width: 920px) {
+      .workspace { grid-template-columns: 1fr; }
+      .result-card { min-height: auto; }
+      .fold-view { min-height: 280px; }
+    }
+
+    @media (max-width: 600px) {
+      .page { width: min(100% - 18px, 560px); padding-top: 16px; }
+      .hero { align-items: flex-start; gap: 11px; }
+      .hero-icon { width: 50px; height: 50px; }
+      .toolbar { align-items: stretch; flex-direction: column; border-radius: 17px; }
+      .counter { align-self: center; }
+      .mode-btn { padding-inline: 8px; font-size: .92rem; }
+      .board-card { padding: 13px; border-radius: 20px; }
+      .board-wrap { padding: 10px 5px; }
+      .grid { gap: 2px; }
+      .cell { border-radius: 6px; }
+      .actions { grid-template-columns: 1fr; }
+      .secondary { min-height: 48px; }
+      .discoveries { grid-template-columns: repeat(6, 1fr); gap: 4px; }
+      .discovery { border-radius: 7px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <svg class="hero-icon" viewBox="0 0 80 80" aria-hidden="true">
+        <path d="M40 5 69 21v36L40 74 11 57V21Z" fill="#fff" stroke="#174f9f" stroke-width="4" stroke-linejoin="round"/>
+        <path d="m11 21 29 17 29-17M40 38v36" fill="none" stroke="#174f9f" stroke-width="4" stroke-linejoin="round"/>
+        <path d="m12 21 28-16 28 16-28 17Z" fill="#ffd65a"/>
+        <path d="m11 21 29 17v36L11 57Z" fill="#57bcae"/>
+        <path d="m69 21-29 17v36l29-17Z" fill="#69a9f6"/>
+        <path d="M40 5 69 21v36L40 74 11 57V21Z" fill="none" stroke="#174f9f" stroke-width="4" stroke-linejoin="round"/>
+        <path d="m11 21 29 17 29-17M40 38v36" fill="none" stroke="#174f9f" stroke-width="4" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <h1>立方体の展開図に挑戦！</h1>
+        <p class="subtitle">正方形を6枚並べて、立方体ができるか試してみよう！</p>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="学習モード">
+      <div class="modes" role="tablist" aria-label="モードを選ぶ">
+        <button class="mode-btn" id="freeMode" role="tab" aria-selected="true">自由研究モード</button>
+        <button class="mode-btn" id="completeMode" role="tab" aria-selected="false">11種類コンプリート</button>
+      </div>
+      <div class="counter" id="topCounter" aria-live="polite"><strong>0</strong><span>/ 11 発見！</span></div>
+    </section>
+
+    <div class="workspace">
+      <section class="card board-card" aria-labelledby="placeTitle">
+        <div class="step-row">
+          <h2 class="step-title" id="placeTitle"><span class="step-no">1</span>マスを6つ選ぼう</h2>
+          <div class="placement-count"><strong id="faceCount">0</strong> / 6 枚</div>
+        </div>
+        <div class="board-wrap">
+          <div class="grid" id="grid" role="grid" aria-label="8かける8の方眼"></div>
+        </div>
+        <p class="board-tip">マスをタップすると配置、もう一度タップすると削除できます。</p>
+        <div class="actions">
+          <button class="primary" id="buildButton" disabled>組み立てる！</button>
+          <button class="secondary" id="resetButton">リセット</button>
+        </div>
+      </section>
+
+      <section class="card result-card" aria-labelledby="resultTitle">
+        <div class="result-top">
+          <h2 class="step-title" id="resultTitle"><span class="step-no">2</span>組み立てて確かめよう</h2>
+          <div class="result-state" id="resultState" role="status" aria-live="polite">
+            <span class="state-icon" id="stateIcon">?</span>
+            <div class="state-copy"><strong id="stateTitle">まだ組み立てていません</strong><span id="stateDetail">6枚そろったらボタンを押してみよう。</span></div>
+          </div>
+        </div>
+        <div class="fold-view" id="foldView">
+          <div class="fold-prompt" id="foldPrompt">
+            <svg viewBox="0 0 100 70" aria-hidden="true"><g fill="#dceaff" stroke="#6d91bd" stroke-width="3"><rect x="35" y="3" width="28" height="28" rx="3"/><rect x="5" y="34" width="28" height="28" rx="3"/><rect x="35" y="34" width="28" height="28" rx="3"/><rect x="65" y="34" width="28" height="28" rx="3"/></g></svg>
+            ここに組み立てた様子が表示されます。
+          </div>
+        </div>
+        <button class="replay" id="replayButton" hidden>もう一度見る</button>
+        <div class="complete-panel" id="completePanel" hidden>
+          <div class="complete-head"><strong id="completeCount">0 / 11 発見！</strong><button class="small-btn" id="clearProgress">記録を消す</button></div>
+          <div class="discoveries" id="discoveries" aria-label="発見した展開図"></div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="card help"><strong>考えるヒント：</strong> 面が離れていないかな？　折ったとき、同じ場所に2枚の面が重ならないかな？　回した形や裏返した形は同じ種類として数えます。</aside>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const SIZE = 8;
+      const MAX_FACES = 6;
+      const STORAGE_KEY = "cube-net-lab-discoveries-v1";
+      const COLORS = ["#74b8ff", "#5fc7b8", "#ffd768", "#ff9b79", "#b991ea", "#7fd39a"];
+      const DIRS = [
+        { dx: 1, dy: 0, name: "E" },
+        { dx: -1, dy: 0, name: "W" },
+        { dx: 0, dy: -1, name: "N" },
+        { dx: 0, dy: 1, name: "S" }
+      ];
+      const NORMALS = ["1,0,0", "-1,0,0", "0,1,0", "0,-1,0", "0,0,1", "0,0,-1"];
+
+      const grid = document.getElementById("grid");
+      const faceCount = document.getElementById("faceCount");
+      const buildButton = document.getElementById("buildButton");
+      const resetButton = document.getElementById("resetButton");
+      const freeMode = document.getElementById("freeMode");
+      const completeMode = document.getElementById("completeMode");
+      const topCounter = document.getElementById("topCounter");
+      const resultState = document.getElementById("resultState");
+      const stateIcon = document.getElementById("stateIcon");
+      const stateTitle = document.getElementById("stateTitle");
+      const stateDetail = document.getElementById("stateDetail");
+      const foldView = document.getElementById("foldView");
+      const replayButton = document.getElementById("replayButton");
+      const completePanel = document.getElementById("completePanel");
+      const completeCount = document.getElementById("completeCount");
+      const discoveries = document.getElementById("discoveries");
+      const clearProgress = document.getElementById("clearProgress");
+
+      let selected = new Set();
+      let mode = "free";
+      let lastResult = null;
+      let found = loadFound();
+
+      const keyOf = (x, y) => `${x},${y}`;
+      const parseKey = key => key.split(",").map(Number);
+      const neg = a => a.map(v => -v);
+      const vecKey = a => a.join(",");
+      const sameVec = (a, b) => a.every((v, i) => v === b[i]);
+      const sameOrientation = (a, b) => sameVec(a.u, b.u) && sameVec(a.v, b.v) && sameVec(a.n, b.n);
+
+      function foldOrientation(o, direction) {
+        if (direction === "E") return { u: neg(o.n), v: o.v.slice(), n: o.u.slice() };
+        if (direction === "W") return { u: o.n.slice(), v: o.v.slice(), n: neg(o.u) };
+        if (direction === "N") return { u: o.u.slice(), v: neg(o.n), n: o.v.slice() };
+        return { u: o.u.slice(), v: o.n.slice(), n: neg(o.v) };
+      }
+
+      function canonical(points) {
+        const variants = [
+          ([x,y]) => [x,y], ([x,y]) => [x,-y], ([x,y]) => [-x,y], ([x,y]) => [-x,-y],
+          ([x,y]) => [y,x], ([x,y]) => [y,-x], ([x,y]) => [-y,x], ([x,y]) => [-y,-x]
+        ];
+        return variants.map(fn => {
+          const moved = points.map(fn);
+          const minX = Math.min(...moved.map(p => p[0]));
+          const minY = Math.min(...moved.map(p => p[1]));
+          return moved.map(([x,y]) => [x-minX, y-minY]).sort((a,b) => a[1]-b[1] || a[0]-b[0]).map(p => p.join(",")).join(";");
+        }).sort()[0];
+      }
+
+      function analyzeNet(points) {
+        if (points.length !== 6) return { valid: false, reason: "正方形を6枚選んでください。", orientations: new Map(), disconnected: true };
+        const occupied = new Set(points.map(p => keyOf(p[0], p[1])));
+        const start = points[0];
+        const orientations = new Map([[keyOf(start[0], start[1]), { u:[1,0,0], v:[0,1,0], n:[0,0,1] }]]);
+        const queue = [start];
+        let conflict = false;
+
+        while (queue.length) {
+          const [x,y] = queue.shift();
+          const current = orientations.get(keyOf(x,y));
+          for (const d of DIRS) {
+            const nk = keyOf(x+d.dx, y+d.dy);
+            if (!occupied.has(nk)) continue;
+            const next = foldOrientation(current, d.name);
+            if (!orientations.has(nk)) {
+              orientations.set(nk, next);
+              queue.push([x+d.dx, y+d.dy]);
+            } else if (!sameOrientation(orientations.get(nk), next)) {
+              conflict = true;
+            }
+          }
+        }
+
+        if (orientations.size !== 6) {
+          return { valid: false, reason: "面がすべてつながっていません。", orientations, disconnected: true, canonical: canonical(points) };
+        }
+
+        const normals = [...orientations.values()].map(o => vecKey(o.n));
+        const unique = new Set(normals);
+        const duplicateNormals = new Set(normals.filter((n, i) => normals.indexOf(n) !== i));
+        const missingNormals = NORMALS.filter(n => !unique.has(n));
+        const valid = !conflict && unique.size === 6;
+        return {
+          valid,
+          reason: valid ? "6つの面が重ならず、立方体になりました。" : "折ると同じ場所に面が重なり、足りない面ができます。",
+          orientations,
+          duplicateNormals,
+          missingNormals,
+          conflict,
+          disconnected: false,
+          canonical: canonical(points)
+        };
+      }
+
+      function makeGrid() {
+        const fragment = document.createDocumentFragment();
+        for (let y = 0; y < SIZE; y++) {
+          for (let x = 0; x < SIZE; x++) {
+            const button = document.createElement("button");
+            button.className = "cell";
+            button.type = "button";
+            button.dataset.x = x;
+            button.dataset.y = y;
+            button.setAttribute("role", "gridcell");
+            button.setAttribute("aria-label", `${y+1}行${x+1}列、空き`);
+            button.setAttribute("aria-pressed", "false");
+            button.addEventListener("click", () => toggleCell(button));
+            fragment.appendChild(button);
+          }
+        }
+        grid.appendChild(fragment);
+      }
+
+      function toggleCell(button) {
+        const key = keyOf(+button.dataset.x, +button.dataset.y);
+        if (selected.has(key)) selected.delete(key);
+        else if (selected.size < MAX_FACES) selected.add(key);
+        else {
+          button.classList.remove("cannot-add");
+          void button.offsetWidth;
+          button.classList.add("cannot-add");
+          announce("6枚までです", "選んだマスを一度タップして減らせます。", "fail", "!");
+          return;
+        }
+        lastResult = null;
+        renderSelection();
+        showIdle();
+      }
+
+      function renderSelection() {
+        [...grid.children].forEach(button => {
+          const key = keyOf(+button.dataset.x, +button.dataset.y);
+          const on = selected.has(key);
+          button.classList.toggle("selected", on);
+          button.setAttribute("aria-pressed", String(on));
+          button.setAttribute("aria-label", `${+button.dataset.y+1}行${+button.dataset.x+1}列、${on ? "配置済み" : "空き"}`);
+        });
+        faceCount.textContent = selected.size;
+        buildButton.disabled = selected.size !== 6;
+      }
+
+      function selectedPoints() { return [...selected].map(parseKey); }
+
+      function announce(title, detail, type = "", icon = "?") {
+        resultState.className = `result-state ${type}`.trim();
+        stateIcon.textContent = icon;
+        stateTitle.textContent = title;
+        stateDetail.textContent = detail;
+      }
+
+      function showIdle() {
+        announce("まだ組み立てていません", selected.size === 6 ? "準備OK！ 組み立てるボタンを押そう。" : "6枚そろったらボタンを押してみよう。", "", "?");
+        foldView.className = "fold-view";
+        foldView.innerHTML = `<div class="fold-prompt" id="foldPrompt"><svg viewBox="0 0 100 70" aria-hidden="true"><g fill="#dceaff" stroke="#6d91bd" stroke-width="3"><rect x="35" y="3" width="28" height="28" rx="3"/><rect x="5" y="34" width="28" height="28" rx="3"/><rect x="35" y="34" width="28" height="28" rx="3"/><rect x="65" y="34" width="28" height="28" rx="3"/></g></svg>ここに組み立てた様子が表示されます。</div>`;
+        replayButton.hidden = true;
+      }
+
+      function build() {
+        if (selected.size !== 6) return;
+        const result = analyzeNet(selectedPoints());
+        lastResult = result;
+        if (result.disconnected) showDisconnected(result);
+        else showFold(result);
+
+        if (result.valid) {
+          let detail = result.reason;
+          if (mode === "complete") {
+            const isNew = !found.includes(result.canonical);
+            if (isNew) {
+              found.push(result.canonical);
+              saveFound();
+              detail = `新しい形を発見！　${found.length}種類目です。`;
+            } else detail = "この種類は発見済みです。向きを変えた形も同じ種類です。";
+            renderProgress();
+          }
+          announce("正解！", detail, "success", "✓");
+        } else {
+          announce("立方体にはなりません", result.reason, "fail", "×");
+        }
+      }
+
+      function cubeTransform(normal) {
+        const map = {
+          "0,0,1": "translateZ(42px)", "0,0,-1": "rotateY(180deg) translateZ(42px)",
+          "1,0,0": "rotateY(90deg) translateZ(42px)", "-1,0,0": "rotateY(-90deg) translateZ(42px)",
+          "0,1,0": "rotateX(-90deg) translateZ(42px)", "0,-1,0": "rotateX(90deg) translateZ(42px)"
+        };
+        return map[normal] || "translateZ(42px)";
+      }
+
+      function showFold(result) {
+        foldView.className = "fold-view";
+        foldView.innerHTML = "";
+        const scene = document.createElement("div");
+        scene.className = "cube-scene";
+        const points = selectedPoints();
+        const cx = points.reduce((s,p) => s+p[0], 0) / points.length;
+        const cy = points.reduce((s,p) => s+p[1], 0) / points.length;
+        const counts = {};
+        [...result.orientations.values()].forEach(o => counts[vecKey(o.n)] = (counts[vecKey(o.n)] || 0) + 1);
+
+        points.forEach(([x,y], i) => {
+          const o = result.orientations.get(keyOf(x,y));
+          const normal = vecKey(o.n);
+          const face = document.createElement("div");
+          face.className = `fold-face${counts[normal] > 1 ? " overlap" : ""}`;
+          face.textContent = counts[normal] > 1 ? "重なる" : "";
+          face.style.setProperty("--face", COLORS[i % COLORS.length]);
+          face.style.setProperty("--net-transform", `translate3d(${(x-cx)*86}px, ${(y-cy)*86}px, 0)`);
+          face.style.setProperty("--cube-transform", cubeTransform(normal));
+          face.style.transitionDelay = `${i * .07}s`;
+          scene.appendChild(face);
+        });
+
+        if (!result.valid) {
+          result.missingNormals.forEach(normal => {
+            const ghost = document.createElement("div");
+            ghost.className = "ghost-face";
+            ghost.textContent = "足りない";
+            ghost.style.setProperty("--cube-transform", cubeTransform(normal));
+            scene.appendChild(ghost);
+          });
+        }
+        foldView.appendChild(scene);
+        requestAnimationFrame(() => requestAnimationFrame(() => foldView.classList.add("folding")));
+        replayButton.hidden = false;
+      }
+
+      function connectedParts(points) {
+        const left = new Set(points.map(p => keyOf(p[0],p[1])));
+        const parts = [];
+        while (left.size) {
+          const first = parseKey(left.values().next().value);
+          const part = [];
+          const q = [first];
+          left.delete(keyOf(first[0],first[1]));
+          while (q.length) {
+            const p = q.shift(); part.push(p);
+            DIRS.forEach(d => {
+              const k = keyOf(p[0]+d.dx,p[1]+d.dy);
+              if (left.has(k)) { left.delete(k); q.push(parseKey(k)); }
+            });
+          }
+          parts.push(part);
+        }
+        return parts;
+      }
+
+      function showDisconnected() {
+        foldView.className = "fold-view";
+        foldView.innerHTML = "";
+        const preview = document.createElement("div");
+        preview.className = "disconnected-preview";
+        const partMap = new Map();
+        connectedParts(selectedPoints()).forEach((part, pi) => part.forEach(p => partMap.set(keyOf(p[0],p[1]), pi)));
+        for (let y=0; y<SIZE; y++) for (let x=0; x<SIZE; x++) {
+          const k = keyOf(x,y);
+          const cell = document.createElement("div");
+          if (selected.has(k)) cell.className = `preview-cell part-${partMap.get(k) % 4}`;
+          preview.appendChild(cell);
+        }
+        foldView.appendChild(preview);
+        const note = document.createElement("div");
+        note.className = "preview-note";
+        note.textContent = "色の分かれた面どうしが、つながっていません";
+        foldView.appendChild(note);
+        replayButton.hidden = true;
+      }
+
+      function resetBoard() {
+        selected.clear();
+        lastResult = null;
+        renderSelection();
+        showIdle();
+      }
+
+      function setMode(next) {
+        mode = next;
+        freeMode.setAttribute("aria-selected", String(mode === "free"));
+        completeMode.setAttribute("aria-selected", String(mode === "complete"));
+        completePanel.hidden = mode !== "complete";
+        topCounter.style.visibility = mode === "complete" ? "visible" : "hidden";
+        renderProgress();
+        showIdle();
+      }
+
+      function loadFound() {
+        try {
+          const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          return Array.isArray(data) ? [...new Set(data.filter(v => typeof v === "string"))].slice(0,11) : [];
+        } catch { return []; }
+      }
+      function saveFound() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(found)); } catch {} }
+
+      function miniNet(key) {
+        const pts = key.split(";").map(parseKey);
+        const w = Math.max(...pts.map(p=>p[0])) + 1;
+        const h = Math.max(...pts.map(p=>p[1])) + 1;
+        const s = Math.min(12, 48 / Math.max(w,h));
+        const ox = (56 - w*s)/2, oy = (56 - h*s)/2;
+        return `<svg viewBox="0 0 56 56" aria-hidden="true">${pts.map(([x,y]) => `<rect x="${ox+x*s+1}" y="${oy+y*s+1}" width="${s-2}" height="${s-2}" rx="1.5" fill="#f7bd32" stroke="#9b6d00" stroke-width="1"/>`).join("")}</svg>`;
+      }
+
+      function renderProgress() {
+        topCounter.innerHTML = `<strong>${found.length}</strong><span>/ 11 発見！</span>`;
+        completeCount.textContent = `${found.length} / 11 発見！`;
+        discoveries.innerHTML = "";
+        for (let i=0; i<11; i++) {
+          const slot = document.createElement("div");
+          slot.className = `discovery${found[i] ? " found" : ""}`;
+          slot.setAttribute("aria-label", found[i] ? `${i+1}種類目、発見済み` : `${i+1}種類目、未発見`);
+          slot.innerHTML = found[i] ? miniNet(found[i]) : "?";
+          discoveries.appendChild(slot);
+        }
+      }
+
+      function replay() {
+        if (!lastResult || lastResult.disconnected) return;
+        showFold(lastResult);
+      }
+
+      buildButton.addEventListener("click", build);
+      resetButton.addEventListener("click", resetBoard);
+      replayButton.addEventListener("click", replay);
+      freeMode.addEventListener("click", () => setMode("free"));
+      completeMode.addEventListener("click", () => setMode("complete"));
+      clearProgress.addEventListener("click", () => {
+        if (found.length && confirm("発見した記録をすべて消しますか？")) {
+          found = []; saveFound(); renderProgress();
+        }
+      });
+
+      makeGrid();
+      renderSelection();
+      renderProgress();
+      setMode("free");
+
+      window.CubeNetLab = Object.freeze({ analyzeNet, canonical, foldOrientation });
+    })();
+  </script>
+</body>
+</html>
