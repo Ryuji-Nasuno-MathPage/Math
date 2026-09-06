@@ -480,7 +480,9 @@
 
     function kinkiTask() {
       const regions = [
-        D("water", "瀬戸内海・太平洋", "M25 255H470V350H410V330H380V360H300V335H210V360H115V280H25Z M25 490H650V410H875V525H25Z", 450, 505, undefined, true),
+        // 海を地図下半分の土台として先に描く。陸地はこの上に重なるため、
+        // 都道府県の間に見える部分もすべてクリック可能な海になる。
+        D("water", "瀬戸内海・太平洋", "M25 100H875V525H25Z", 450, 505, undefined, true),
         D("japan-sea", "日本海", "M25 25H875V100H690V145H525V115H385V100H25Z", 450, 63, undefined, true),
 
         R("tottori", "鳥取", 25, 100, 230, 70),
@@ -514,7 +516,7 @@
         ["kagawa","ehime"],["kagawa","tokushima"],["ehime","tokushima"],["ehime","kochi"],["tokushima","kochi"],
         ["awaji","hyogo"],["awaji","tokushima"]
       ];
-      return { id: "kinki", short: "問題4", title: "海のある近畿地図", level: "むずかしい", description: "海も色を塗る場所です。瀬戸内海と太平洋はつながった1つの場所として、同時に同じ色になります。", viewBox: "0 0 900 550", regions, adj };
+      return { id: "kinki", short: "問題4", title: "海のある近畿地図", level: "むずかしい", description: "海も色を塗る場所です。白い場所が残らないように、瀬戸内海・太平洋と日本海も忘れずに塗ろう。", viewBox: "0 0 900 550", regions, adj };
     }
 
     function ringTask() {
@@ -800,7 +802,7 @@
       } else if (painted === task.regions.length) {
         setStatus("success", "🎉", `完成！ ${used}色で、正しく塗り分けられました。`);
       } else if (painted > 0) {
-        setStatus("", "👍", `今のところ正解！ あと${task.regions.length - painted}か所です。`);
+        setStatus("", "🎨", `ここまではOK。未着色の場所があと${task.regions.length - painted}か所あります。`);
       } else {
         setStatus("", "👆", "色を選んで、場所をタップしよう。");
       }
